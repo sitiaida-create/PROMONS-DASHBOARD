@@ -117,7 +117,7 @@
       flex: 1;
     }
 
-    /* ================= CARDS & KPI ================= */
+    /* ================= CARDS & KPI ALIGNMENT ================= */
     .card {
       background: #ffffff;
       border-radius: 14px;
@@ -126,11 +126,23 @@
     }
 
     .kpi-card {
-      padding: 20px;
-      min-height: 125px;
+      padding: 18px 20px;
+      min-height: 110px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+    }
+
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      min-height: 32px;
+      line-height: 1.25;
+      display: flex;
+      align-items: flex-start;
     }
 
     .kpi-number {
@@ -138,6 +150,13 @@
       font-weight: 800;
       margin-top: 6px;
       line-height: 1.1;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 6px;
+      line-height: 1.2;
     }
 
     /* ================= FORM CONTROLS ================= */
@@ -616,69 +635,69 @@
         <div id="kpiContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
           <!-- Shared KPI 1: Jumlah Geran -->
           <div class="card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Jumlah Geran</div>
+            <div class="kpi-title">Jumlah Geran</div>
             <div id="kpiTotal" class="kpi-number text-gray-900">0</div>
-            <div class="text-[11px] text-gray-400">Berdasarkan filter semasa</div>
+            <div class="kpi-sub">Berdasarkan filter semasa</div>
           </div>
 
           <!-- Geran Aktif: Monitored Quartile -->
           <div id="kpiMonitoredCard" class="card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Total Grant by Monitored Quartile</div>
+            <div class="kpi-title">Total Grant by Monitored Quartile</div>
             <div id="kpiMonitored" class="kpi-number text-blue-700">0</div>
-            <div class="text-[11px] text-gray-400">Q1 hingga Q5 (Extension)</div>
+            <div class="kpi-sub">Q1 hingga Q5 (Extension)</div>
           </div>
 
           <!-- Geran Aktif: Not Monitored -->
           <div id="kpiNotMonitoredCard" class="card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Grant Not Monitored</div>
+            <div class="kpi-title">Grant Not Monitored</div>
             <div id="kpiNotMonitored" class="kpi-number text-gray-600">0</div>
           </div>
 
           <!-- Geran Aktif: PI Card (Kolum B) -->
           <div id="kpiPICard" class="card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Principal Investigator (PI)</div>
+            <div class="kpi-title">Principal Investigator (PI)</div>
             <div id="kpiPI" class="kpi-number text-indigo-700">0</div>
           </div>
 
           <!-- Geran Aktif: Non PI Card (Kolum B) -->
           <div id="kpiNonPICard" class="card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Non PI</div>
+            <div class="kpi-title">Non PI</div>
             <div id="kpiNonPI" class="kpi-number text-slate-600">0</div>
           </div>
 
           <!-- Geran Tamat: Tamat Tahun 2026 -->
           <div id="kpiTamat2026Card" class="hidden card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Tamat Tahun 2026</div>
+            <div class="kpi-title">Tamat Tahun 2026</div>
             <div id="kpiTamat2026" class="kpi-number text-blue-800">0</div>
-            <div class="text-[11px] text-gray-400">Geran Tamat Tahun 2026</div>
+            <div class="kpi-sub">Geran Tamat Tahun 2026</div>
           </div>
 
           <!-- Geran Tamat: Tamat 2026 Tanpa Ext -->
           <div id="kpiTamat2026NoExtCard" class="hidden card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Tamat 2026 (Tanpa Ext)</div>
+            <div class="kpi-title">Tamat 2026 (Tanpa Ext)</div>
             <div id="kpiTamat2026NoExt" class="kpi-number text-emerald-700">0</div>
-            <div class="text-[11px] text-gray-400">Geran Tanpa Pelanjutan</div>
+            <div class="kpi-sub">Geran Tanpa Pelanjutan</div>
           </div>
 
           <!-- Geran Tamat: Submit Final Report -->
           <div id="kpiSubmitFRCard" class="hidden card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Submit Final Report</div>
+            <div class="kpi-title">Submit Final Report</div>
             <div id="kpiSubmitFR" class="kpi-number text-green-700">0</div>
-            <div class="text-[11px] text-gray-400">FR Status Submitted</div>
+            <div class="kpi-sub">FR Status Submitted</div>
           </div>
 
           <!-- Geran Tamat: Belum Submit FR -->
           <div id="kpiBelumSubmitFRCard" class="hidden card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Not Submitted Final Report</div>
+            <div class="kpi-title">Not Submitted Final Report</div>
             <div id="kpiBelumSubmitFR" class="kpi-number text-red-600">0</div>
-            <div class="text-[11px] text-gray-400">FR Not completed & Draft</div>
+            <div class="kpi-sub">FR Not completed & Draft</div>
           </div>
 
           <!-- Geran Tamat: Tempoh Grace Period -->
           <div id="kpiGracePeriodCard" class="hidden card kpi-card">
-            <div class="text-xs font-bold text-gray-500 uppercase">Tempoh Grace Period</div>
+            <div class="kpi-title">Tempoh Grace Period</div>
             <div id="kpiGracePeriod" class="kpi-number text-purple-700">0</div>
-            <div class="text-[11px] text-gray-400">Geran Dalam Grace Period</div>
+            <div class="kpi-sub">Geran Dalam Grace Period</div>
           </div>
         </div>
 
@@ -864,7 +883,7 @@
               </p>
             </div>
 
-            <!-- Butang Penapis Pantas Grace Period (Susunan: Semua, Dalam Grace Period, Luar Grace Period) -->
+            <!-- Butang Penapis Pantas Grace Period -->
             <div class="flex items-center gap-2">
               <div class="inline-flex bg-gray-100 p-1 rounded-lg border border-gray-200 text-xs">
                 <button id="btnGraceFilterAll" class="px-3 py-1 font-semibold rounded-md bg-white text-gray-900 shadow-sm transition" onclick="setGraceChartFilter('all')">
@@ -880,7 +899,7 @@
             </div>
           </div>
 
-          <!-- Ringkasan Metrik Pantas Status Verdict Grace Period (Klik untuk Modal Maklumat Geran) -->
+          <!-- Ringkasan Metrik Pantas Status Verdict Grace Period -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <!-- Cemerlang -->
             <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Cemerlang')" title="Klik untuk lihat maklumat geran Cemerlang">
@@ -1181,7 +1200,7 @@
   </main>
 
   <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
-    Dashboard Pemantauan Geran Penyelidikan © 2026 RMC
+    Dashboard Pemantauan Geran Penyelidikan &copy; 2026 RMC
   </footer>
 </div>
 
@@ -1278,10 +1297,10 @@
       </div>
       <div class="bg-gray-50 p-4 rounded-lg text-xs text-gray-600 space-y-1">
         <div class="font-bold text-gray-800 mb-2">Pemetaan Kolum Google Sheet:</div>
-        <div>B → PI/Non PI | C → Cost Centre No | D → Grant Type | E → Grant Title | F → Staff Name</div>
-        <div>J → Project Start | K → Project End | L → New End Date / Ext | P → Quartile</div>
-        <div>S → Milestone | V → Expenditure | Y → HCD | AB → Publication | AE → IPR</div>
-        <div>AG → Verdict | AJ → Grace Period | AK → Grant Category | AN → FR Status</div>
+        <div>B &rarr; PI/Non PI | C &rarr; Cost Centre No | D &rarr; Grant Type | E &rarr; Grant Title | F &rarr; Staff Name</div>
+        <div>J &rarr; Project Start | K &rarr; Project End | L &rarr; New End Date / Ext | P &rarr; Quartile</div>
+        <div>S &rarr; Milestone | V &rarr; Expenditure | Y &rarr; HCD | AB &rarr; Publication | AE &rarr; IPR</div>
+        <div>AG &rarr; Verdict | AJ &rarr; Grace Period | AK &rarr; Grant Category | AN &rarr; FR Status</div>
       </div>
     </div>
     <div class="p-5 border-t border-gray-200 flex justify-end gap-2">
@@ -1354,7 +1373,6 @@ let charts = {
 // Urutan Kategori Geran Rasmi
 const CATEGORY_ORDER = ["MOHE", "MOSTI", "RUG", "JTNCPI", "GERAN LUAR", "ICC", "CCIN", "CRAEG"];
 
-// RFC-4180 compliant CSV parser fallback
 function parseCSVText(text) {
   const lines = [];
   let row = [];
@@ -1413,6 +1431,14 @@ function unparseCSV(rows) {
 
 document.addEventListener("DOMContentLoaded", () => {
   initDashboard();
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeModal("graceVerdictModal");
+      closeModal("detailModal");
+      closeModal("configModal");
+    }
+  });
 });
 
 async function initDashboard() {
@@ -1570,7 +1596,7 @@ function updateSourceUI() {
   if (verdictSummarySubtitle) {
     verdictSummarySubtitle.innerText = isTamat
       ? "Taburan semua geran tamat berasaskan Verdict."
-      : "Taburan geran berasaskanVerdict: PW, OS, BS, NCM.";
+      : "Taburan geran berasaskan Verdict: PW, OS, BS, NCM.";
   }
 
   const verdictNoticeText = document.getElementById("verdictNoticeText");
@@ -2290,7 +2316,6 @@ function renderKPIs() {
     if (kpiPI) kpiPI.innerText = piCount.toLocaleString();
     if (kpiNonPI) kpiNonPI.innerText = nonPICount.toLocaleString();
   } else {
-    // Menggunakan metrik berpusat untuk jaminan 100% konsistensi dengan teks Ringkasan Analisis
     const metrics = computeTamatMetrics(filteredData);
 
     const el2026 = document.getElementById("kpiTamat2026");
@@ -2432,7 +2457,6 @@ function renderStrategicSummary() {
       el.innerHTML = `Daripada <strong>${filteredData.length}</strong> geran yang ditapis, sebanyak <strong>${mon}</strong> geran (${filteredData.length > 0 ? ((mon / filteredData.length) * 100).toFixed(1) : 0}%) berada dalam pemantauan rapi (Q1 – Q5), manakala <strong>${notMon}</strong> geran tidak dipantau secara berjadual.`;
     }
   } else {
-    // Menggunakan nilai pengiraan berpusat yang tepat dan seragam
     const metrics = computeTamatMetrics(filteredData);
 
     const el2026 = document.getElementById("summaryTamat2026Text");
@@ -2566,7 +2590,7 @@ function renderWarningTable() {
         <div class="font-semibold text-gray-900 max-w-sm line-clamp-2" title="${escapeAttr(item.grantTitle)}">
           ${escapeHtml(item.grantTitle)}
         </div>
-        <div class="text-[11px] text-gray-500 mt-0.5">${escapeHtml(item.grantType)} • ${escapeHtml(item.grantCategory)}</div>
+        <div class="text-[11px] text-gray-500 mt-0.5">${escapeHtml(item.grantType)} &bull; ${escapeHtml(item.grantCategory)}</div>
       </td>
       <td>${escapeHtml(item.staffName)}</td>
       <td>${escapeHtml(item.effectiveEndDisplay)}</td>
@@ -2838,13 +2862,13 @@ function updateCharts() {
 
   const basePalette = ["#1e40af", "#0284c7", "#0d9488", "#16a34a", "#ca8a04", "#ea580c", "#dc2626", "#7c3aed", "#c026d3", "#64748b"];
 
-  // 1. Grant Category Chart (Kedudukan Pertama)
+  // 1. Grant Category Chart
   const catSet = [...new Set(visualData.map(d => d.grantCategory))].sort(compareGrantCategories);
   const catData = catSet.map(c => visualData.filter(d => d.grantCategory === c).length);
   const catColors = catSet.map((_, i) => basePalette[i % basePalette.length]);
   renderOrUpdateBarChart("grantCategory", "chartGrantCategory", catSet, catData, catColors);
 
-  // 2. Verdict Chart (Kedudukan Kedua)
+  // 2. Verdict Chart
   const verdictMap = { "Cemerlang": 0, "Memuaskan": 0, "Kurang Memuaskan": 0, "Bermasalah": 0 };
   visualData.forEach(d => {
     const idx = getVerdictOrderIndex(d.verdict);
@@ -2865,7 +2889,7 @@ function updateCharts() {
   const vColors = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
   renderOrUpdateDoughnutChart("verdict", "chartVerdict", vLabels, vData, vColors);
 
-  // 3. Quartile Chart (Kedudukan Ketiga - Geran Aktif Sahaja)
+  // 3. Quartile Chart (Geran Aktif Sahaja)
   if (!isTamat) {
     const qLabels = ["Q1", "Q2", "Q3", "Q4", "Q5 (Extension)"];
     const qData = qLabels.map(q => visualData.filter(d => d.quartile === q).length);
@@ -3481,10 +3505,15 @@ function frBadgeClass(status) {
 
 function openModal(id) {
   document.getElementById(id).classList.add("show");
+  document.body.style.overflow = "hidden";
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove("show");
+  const anyOpen = document.querySelector(".modal-overlay.show");
+  if (!anyOpen) {
+    document.body.style.overflow = "";
+  }
 }
 
 function closeModalOnOverlay(e, id) {
@@ -3595,7 +3624,6 @@ function escapeAttr(str) {
   return escapeHtml(str);
 }
 
-// Pendaftaran Global pada Objek Window
 window.selectSource = selectSource;
 window.switchTab = switchTab;
 window.applyFilters = applyFilters;
