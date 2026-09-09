@@ -1682,13 +1682,19 @@ function parseGrantRow(row, sheetRowNumber) {
   const effectiveEndDate = hasExtension ? (lDate || kDate) : kDate;
   const effectiveYear = hasExtension ? (lYear || kYear) : kYear;
 
-  // 1. Keseluruhan geran yang tamat pada tahun 2026 (tepat 270 geran)
-  const isEnded2026 = effectiveYear === "2026" ||
-                      (hasExtension && (lYear === "2026" || /\b2026\b/.test(lRaw))) ||
-                      (!hasExtension && (kYear === "2026" || /\b2026\b/.test(kRaw)));
+  // 1. Tamat Tahun 2026
+  // BACA COLUMN K SAHAJA.
+  // COLUMN L / EXTENSION TIDAK DIGUNAKAN.
+  const isEnded2026 =
+    kYear === "2026" || /\b2026\b/.test(kRaw);
 
-  // 2. Geran tamat 2026 tanpa sebarang lanjutan tarikh (tepat 232 geran)
-  const isEnded2026NoExt = (kYear === "2026" || /\b2026\b/.test(kRaw)) && !hasExtension;
+  // 2. Tamat 2026 (Tanpa Ext)
+  // SYARAT:
+  // - Column K tamat pada tahun 2026
+  // - Column L mesti BLANK
+  const isEnded2026NoExt =
+    (kYear === "2026" || /\b2026\b/.test(kRaw)) &&
+    isColLBlank;
 
   const quartile = normalizeQuartile(row[COL.QUARTILE]);
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
@@ -2139,7 +2145,15 @@ function applyFilters() {
     if (type !== "ALL" && item.grantType !== type) return false;
     if (category !== "ALL" && item.grantCategory !== category) return false;
     if (month !== "ALL" && item.month !== month) return false;
-    if (year !== "ALL" && item.year !== year) return false;
+    if (year !== "ALL") {
+      // Geran Tamat: Tahun Project End mesti membaca Column K.
+      // Geran Aktif: kekalkan tahun berdasarkan effective end date.
+      const yearToCheck = currentSource === "Geran Tamat"
+        ? item.kYear
+        : item.year;
+
+      if (yearToCheck !== year) return false;
+    }
     if (quartile !== "ALL" && item.quartile !== quartile) return false;
     if (verdict !== "ALL" && item.verdict !== verdict) return false;
 
