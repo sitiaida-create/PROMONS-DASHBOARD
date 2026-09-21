@@ -1300,7 +1300,7 @@
         <div>B &rarr; PI/Non PI | C &rarr; Cost Centre No | D &rarr; Grant Type | E &rarr; Grant Title | F &rarr; Staff Name</div>
         <div>J &rarr; Project Start | K &rarr; Project End | L &rarr; New End Date / Ext | P &rarr; Quartile</div>
         <div>S &rarr; Milestone | V &rarr; Expenditure | Y &rarr; HCD | AB &rarr; Publication | AE &rarr; IPR</div>
-        <div>AG &rarr; Verdict | AJ &rarr; Grant Category | AN &rarr; FR Status</div>
+        <div>AG &rarr; Verdict | Geran Aktif: AJ &rarr; Grant Category | Geran Tamat: AK &rarr; Grant Category | AN &rarr; FR Status</div>
       </div>
     </div>
     <div class="p-5 border-t border-gray-200 flex justify-end gap-2">
@@ -1334,9 +1334,10 @@ const COL = {
   PUBLICATION: 27,    // AB
   IPR: 30,            // AE
   VERDICT: 32,        // AG
-  GRACE_PERIOD: 35,   // AJ
-  GRANT_CATEGORY: 35, // AJ
-  FR_STATUS: 39       // AN
+  GRACE_PERIOD: 35,          // AJ (Geran Tamat)
+  GRANT_CATEGORY_AKTIF: 35, // AJ (Geran Aktif)
+  GRANT_CATEGORY_TAMAT: 36, // AK (Geran Tamat)
+  FR_STATUS: 39              // AN
 };
 
 let currentSource = "Geran Aktif";
@@ -1698,7 +1699,12 @@ function parseGrantRow(row, sheetRowNumber) {
 
   const quartile = normalizeQuartile(row[COL.QUARTILE]);
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
-  const grantCategory = clean(row[COL.GRANT_CATEGORY]) || "Tidak Dinyatakan"; // Grant Category = AJ
+  // Grant Category bergantung kepada sumber data:
+  // Geran Aktif = AJ, Geran Tamat = AK
+  const grantCategoryCol = currentSource === "Geran Tamat"
+    ? COL.GRANT_CATEGORY_TAMAT
+    : COL.GRANT_CATEGORY_AKTIF;
+  const grantCategory = clean(row[grantCategoryCol]) || "Tidak Dinyatakan";
 
   // Item Pencapaian: S, V, Y, AB, AE
   const milestone = clean(row[COL.MILESTONE]);
