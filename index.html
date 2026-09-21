@@ -1584,7 +1584,7 @@ function updateSourceUI() {
       thPW.innerHTML = `<div>Cemerlang</div><div class="text-[10px] font-normal text-gray-500 normal-case">Excellent</div>`;
       thOS.innerHTML = `<div>Memuaskan</div><div class="text-[10px] font-normal text-gray-500 normal-case">Satisfactory</div>`;
       thBS.innerHTML = `<div>Kurang Memuaskan</div><div class="text-[10px] font-normal text-gray-500 normal-case">Less Satisfactory</div>`;
-      thNCM.innerHTML = `<div>Bermasalah</div><div class="text-[10px] font-normal text-gray-500 normal-case">Critical</div>`;
+      thNCM.innerHTML = `<div>Bermasalah</div><div class="text-[10px] font-normal text-gray-500 normal-case">Problematic</div>`;
     } else {
       thPW.innerHTML = `<div>PW</div><div class="text-[10px] font-normal text-gray-500 normal-case">Progressing Well</div>`;
       thOS.innerHTML = `<div>OS</div><div class="text-[10px] font-normal text-gray-500 normal-case">On Schedule</div>`;
@@ -2543,7 +2543,7 @@ function renderVerdictBadge(verdict) {
     if (idx === 0) { cls = "badge-green"; line1 = "Cemerlang"; line2 = "Excellent"; }
     else if (idx === 1) { cls = "badge-blue"; line1 = "Memuaskan"; line2 = "Satisfactory"; }
     else if (idx === 2) { cls = "badge-yellow"; line1 = "Kurang Memuaskan"; line2 = "Less Satisfactory"; }
-    else if (idx === 3) { cls = "badge-red"; line1 = "Bermasalah"; line2 = "Critical"; }
+    else if (idx === 3) { cls = "badge-red"; line1 = "Bermasalah"; line2 = "Problematic"; }
   } else {
     if (idx === 0) { cls = "badge-green"; line1 = "PW"; line2 = "Progressing Well"; }
     else if (idx === 1) { cls = "badge-blue"; line1 = "OS"; line2 = "On Schedule"; }
@@ -2907,7 +2907,7 @@ function updateCharts() {
   });
   const vLabels = !isTamat 
     ? ["PW (Progressing Well)", "OS (On Schedule)", "BS (Behind Schedule)", "NCM (Need Close Monitoring)"] 
-    : ["Cemerlang (Excellent)", "Memuaskan (Satisfactory)", "Kurang Memuaskan (Less Satisfactory)", "Bermasalah (Critical)"];
+    : ["Cemerlang (Excellent)", "Memuaskan (Satisfactory)", "Kurang Memuaskan (Less Satisfactory)", "Bermasalah (Problematic)"];
   const vData = [
     verdictMap["Cemerlang"],
     verdictMap["Memuaskan"],
@@ -3073,7 +3073,7 @@ function showGraceVerdictBreakdown(verdictName) {
   if (targetIdx === 0) englishSubtitle = " (Excellent)";
   else if (targetIdx === 1) englishSubtitle = " (Satisfactory)";
   else if (targetIdx === 2) englishSubtitle = " (Less Satisfactory)";
-  else if (targetIdx === 3) englishSubtitle = " (Critical)";
+  else if (targetIdx === 3) englishSubtitle = " (Problematic)";
 
   if (modalTitle) modalTitle.innerText = `Pecahan Verdict: ${verdictName}${englishSubtitle}`;
   if (modalBadge) {
