@@ -2415,7 +2415,15 @@ function renderVerdictMatrix() {
   if (!tbody || !tfoot) return;
 
   const targetData = filteredData;
-  const categories = [...new Set(targetData.map(d => d.grantCategory))].sort(compareGrantCategories);
+
+  // Ringkasan Verdict Mengikut Grant Category:
+  // Geran Aktif  -> Grant Category dibaca daripada column AJ
+  // Geran Tamat  -> Grant Category dibaca daripada column AK
+  // Nilai ini ditetapkan semasa parseGrantRow() melalui
+  // COL.GRANT_CATEGORY_AKTIF / COL.GRANT_CATEGORY_TAMAT.
+  const getSummaryGrantCategory = (d) => clean(d.grantCategory) || "Tidak Dinyatakan";
+
+  const categories = [...new Set(targetData.map(getSummaryGrantCategory))].sort(compareGrantCategories);
   if (!categories.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-400 italic">Tiada data</td></tr>`;
     tfoot.innerHTML = "";
@@ -2425,7 +2433,7 @@ function renderVerdictMatrix() {
   let totalPW = 0, totalOS = 0, totalBS = 0, totalNCM = 0, totalAll = 0;
 
   tbody.innerHTML = categories.map(cat => {
-    const items = targetData.filter(d => d.grantCategory === cat);
+    const items = targetData.filter(d => getSummaryGrantCategory(d) === cat);
     let pw = 0, os = 0, bs = 0, ncm = 0;
 
     items.forEach(d => {
