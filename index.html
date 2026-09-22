@@ -1256,6 +1256,7 @@
                 <th>Kategori</th>
                 <th>Nama Penyelidik</th>
                 <th>Project End</th>
+                <th class="text-center">Verdict</th>
                 <th class="text-center">Status FR</th>
                 <th style="width: 80px;">Tindakan</th>
               </tr>
@@ -3141,7 +3142,7 @@ function showGraceVerdictBreakdown(verdictName) {
   }
 
   const targetIdx = getTamatVerdictOrderIndex(verdictName);
-  const matchingGrants = targetData.filter(d => getVerdictOrderIndex(d.verdict) === targetIdx);
+  const matchingGrants = targetData.filter(d => getTamatVerdictOrderIndex(d.verdict) === targetIdx);
 
   currentModalVerdict = verdictName;
   currentModalFilteredGrants = matchingGrants;
@@ -3244,6 +3245,7 @@ function renderGraceModalTable(grants) {
       <td><span class="badge badge-gray font-semibold">${escapeHtml(item.grantCategory)}</span></td>
       <td class="text-xs text-gray-700">${escapeHtml(item.staffName)}</td>
       <td class="text-xs text-gray-600 whitespace-nowrap">${escapeHtml(item.effectiveEndDisplay)}</td>
+      <td class="text-center">${renderVerdictBadge(item.verdict)}</td>
       <td class="text-center">${renderFRStatusBadge(item.frStatus)}</td>
       <td>
         <button class="btn btn-light text-xs py-1 px-2" onclick="viewGrant('${escapeAttr(item.id)}')">
