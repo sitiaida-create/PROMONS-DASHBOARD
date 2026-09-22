@@ -1838,7 +1838,11 @@ function parseGrantRow(row, sheetRowNumber) {
   const quartile = normalizeQuartile(row[COL.QUARTILE]);
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
 
-  const grantCategoryAktif = clean(row[COL.GRANT_CATEGORY_AKTIF]) || "Tidak Dinyatakan";
+  // GERAN AKTIF: Grant Category = COLUMN AJ sahaja (index 35).
+  // COLUMN AK (index 36) ialah PIC dan tidak digunakan sebagai kategori.
+  const grantCategoryAktif = currentSource === "Geran Aktif"
+    ? (clean(row[COL.GRANT_CATEGORY_AKTIF]) || "Tidak Dinyatakan")
+    : "Tidak Dinyatakan";
   const grantCategoryTamat = clean(row[COL.GRANT_CATEGORY_TAMAT]) || "Tidak Dinyatakan";
   const grantCategory = currentSource === "Geran Tamat"
     ? grantCategoryTamat
@@ -2484,12 +2488,13 @@ function renderQuartileMatrix() {
   if (!tbody || !tfoot) return;
 
   // GERAN AKTIF:
-  // Grant Category MESTI dibaca terus daripada COLUMN AJ.
-  // Dalam array CSV, COLUMN AJ = index 35 (A=0 ... AJ=35).
-  // Jangan gunakan Column AK (index 36) yang mengandungi PIC.
+  // Grant Category WAJIB datang daripada COLUMN AJ sahaja.
+  // A=0 ... AJ=35. COLUMN AK=36 ialah PIC dan TIDAK BOLEH digunakan.
+  const AKTIF_GRANT_CATEGORY_INDEX = COL.GRANT_CATEGORY_AKTIF; // AJ = 35
+
   const getAktifGrantCategory = (d) => {
-    const rawAj = d && Array.isArray(d.rawRow) ? d.rawRow[35] : "";
-    return clean(rawAj) || "Tidak Dinyatakan";
+    if (!d || !Array.isArray(d.rawRow)) return "Tidak Dinyatakan";
+    return clean(d.rawRow[AKTIF_GRANT_CATEGORY_INDEX]) || "Tidak Dinyatakan";
   };
 
   const categories = [...new Set(
