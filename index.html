@@ -1734,14 +1734,18 @@ async function fetchCurrentSource() {
     const baseUrl = sourceUrls[currentSource];
     if (!baseUrl) throw new Error("URL Google Sheet tidak ditetapkan.");
 
+    // Paksa ambil versi CSV Google Sheet yang paling terkini.
+    // Cache-busting mengelakkan GitHub Pages/browser/CDN menggunakan data lama.
+    const cacheBust = baseUrl + (baseUrl.includes("?") ? "&" : "?") + "_=" + Date.now();
+
     const controller = new AbortController();
     timeoutId = setTimeout(() => controller.abort(), 10000);
 
     let csvString = "";
     try {
-      const res = await fetch(baseUrl, {
+      const res = await fetch(cacheBust, {
         method: "GET",
-        cache: "default",
+        cache: "no-store",
         signal: controller.signal
       });
       if (res.ok) {
@@ -1755,7 +1759,7 @@ async function fetchCurrentSource() {
 
     if (!csvString || csvString.trim().length < 50) {
       try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(cacheBust)}`;
         const pRes = await fetch(proxyUrl, { cache: "no-store" });
         if (pRes.ok) csvString = await pRes.text();
       } catch (pErr) {
@@ -1774,7 +1778,7 @@ async function fetchCurrentSource() {
     }
 
     if (rows.length < 2) {
-      console.warn("Google Sheet tiada data lengkap, memuatkan dataset lengkap 1,040 rekod.");
+      console.warn("Google Sheet tiada data lengkap, memuatkan dataset fallback 1,040 rekod.");
       const sampleRows = generateFallbackData(currentSource);
       rows = [new Array(42).fill("Header"), ...sampleRows];
     }
