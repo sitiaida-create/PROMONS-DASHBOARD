@@ -477,9 +477,7 @@
           <i class="fa-solid fa-file-export"></i>
           <span class="hidden md:inline ml-1.5">Export</span>
         </button>
-        <button class="btn btn-light" onclick="openConfigModal()" title="Konfigurasi">
-          <i class="fa-solid fa-gear"></i>
-        </button>
+        <!-- Konfigurasi sumber dikunci supaya semua browser menggunakan sumber data yang sama. -->
       </div>
     </div>
   </header>
@@ -1298,7 +1296,7 @@
     <div class="p-5 border-b border-gray-200 flex items-center justify-between">
       <div>
         <h2 class="text-lg font-extrabold text-gray-900">Konfigurasi Google Sheet</h2>
-        <p class="text-xs text-gray-500 mt-1">Tetapan sumber CSV bagi Geran Aktif dan Geran Tamat.</p>
+        <p class="text-xs text-gray-500 mt-1">Sumber CSV rasmi dashboard. Tetapan ini dikunci supaya paparan konsisten pada semua browser.</p>
       </div>
       <button class="btn btn-light text-sm" onclick="closeModal('configModal')">
         <i class="fa-solid fa-xmark"></i>
@@ -1307,11 +1305,11 @@
     <div class="p-5 space-y-4">
       <div>
         <label class="filter-label">Geran Aktif CSV URL</label>
-        <textarea id="configAktifUrl" class="search-input" rows="3"></textarea>
+        <textarea id="configAktifUrl" class="search-input" rows="3" readonly></textarea>
       </div>
       <div>
         <label class="filter-label">Geran Tamat CSV URL</label>
-        <textarea id="configTamatUrl" class="search-input" rows="3"></textarea>
+        <textarea id="configTamatUrl" class="search-input" rows="3" readonly></textarea>
       </div>
       <div class="bg-gray-50 p-4 rounded-lg text-xs text-gray-600 space-y-1">
         <div class="font-bold text-gray-800 mb-2">Pemetaan Kolum Google Sheet:</div>
@@ -1321,11 +1319,8 @@
         <div>AG &rarr; Verdict | Geran Aktif: AJ &rarr; Grant Category | Geran Tamat: AK &rarr; Grant Category | AN &rarr; FR Status</div>
       </div>
     </div>
-    <div class="p-5 border-t border-gray-200 flex justify-end gap-2">
-      <button class="btn btn-light text-sm" onclick="closeModal('configModal')">Batal</button>
-      <button class="btn btn-dark text-sm" onclick="saveConfig()">
-        <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan
-      </button>
+    <div class="p-5 border-t border-gray-200 flex justify-end">
+      <button class="btn btn-dark text-sm" onclick="closeModal('configModal')">Tutup</button>
     </div>
   </div>
 </div>
@@ -1359,10 +1354,22 @@ const COL = {
 };
 
 let currentSource = "Geran Aktif";
-let sourceUrls = {
-  "Geran Aktif": localStorage.getItem("geranAktifUrl") || DEFAULT_URLS["Geran Aktif"],
-  "Geran Tamat": localStorage.getItem("geranTamatUrl") || DEFAULT_URLS["Geran Tamat"]
+
+// Sumber data rasmi dashboard.
+// Jangan gunakan localStorage untuk URL sumber supaya semua browser
+// (Chrome, Edge, Firefox) sentiasa menggunakan sumber yang sama.
+const sourceUrls = {
+  "Geran Aktif": DEFAULT_URLS["Geran Aktif"],
+  "Geran Tamat": DEFAULT_URLS["Geran Tamat"]
 };
+
+// Bersihkan tetapan URL lama yang mungkin tersimpan daripada versi terdahulu.
+try {
+  localStorage.removeItem("geranAktifUrl");
+  localStorage.removeItem("geranTamatUrl");
+} catch (e) {
+  // Abaikan jika localStorage tidak tersedia / disekat oleh browser.
+}
 
 let grantsData = [];
 let filteredData = [];
@@ -1639,10 +1646,22 @@ async function fetchCurrentSource() {
   document.getElementById("recordStatus").innerText = "Memuatkan data...";
 
   try {
-    const url = sourceUrls[currentSource];
-    if (!url) throw new Error("URL Google Sheet tidak ditetapkan.");
+    const baseUrl = sourceUrls[currentSource];
+    if (!baseUrl) throw new Error("URL Google Sheet tidak ditetapkan.");
 
-    const res = await fetch(url);
+    // Cache-busting + no-store memastikan data CSV terkini digunakan
+    // dan mengurangkan perbezaan antara browser/CDN cache.
+    const cacheBuster = Date.now();
+    const separator = baseUrl.includes("?") ? "&" : "?";
+    const url = `${baseUrl}${separator}v=${cacheBuster}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache"
+      }
+    });
     if (!res.ok) throw new Error(`Ralat pelayan: ${res.status} ${res.statusText}`);
     const csvString = await res.text();
 
@@ -3640,14 +3659,10 @@ function openConfigModal() {
 }
 
 function saveConfig() {
-  const aktif = clean(document.getElementById("configAktifUrl").value);
-  const tamat = clean(document.getElementById("configTamatUrl").value);
-  if (!aktif || !tamat) return;
-
-  sourceUrls["Geran Aktif"] = aktif;
-  sourceUrls["Geran Tamat"] = tamat;
-  localStorage.setItem("geranAktifUrl", aktif);
-  localStorage.setItem("geranTamatUrl", tamat);
+  // URL sumber adalah tetap untuk memastikan semua pengguna/browser
+  // menggunakan konfigurasi dashboard yang sama.
+  document.getElementById("configAktifUrl").value = DEFAULT_URLS["Geran Aktif"];
+  document.getElementById("configTamatUrl").value = DEFAULT_URLS["Geran Tamat"];
 
   closeModal("configModal");
   fetchCurrentSource();
