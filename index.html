@@ -1683,10 +1683,8 @@ async function fetchCurrentSource() {
     // kerana rekod yang mempunyai medan tersebut kosong masih merupakan
     // rekod dalam Google Sheet dan perlu dikira dalam jumlah keseluruhan.
     const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
-    const dataRows = rows.slice(1).filter(row =>
-      Array.isArray(row) && row.some(cell => clean(cell) !== "")
-    );
-    const parsedDataRows = dataRows.length;
+    const dataRows = rows.slice(1).filter(row =>\n      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""\n    );
+    const parsedDataRows = dataRows.length;\n    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
@@ -1697,7 +1695,7 @@ async function fetchCurrentSource() {
     dashboard.classList.remove("hidden");
     const filteredCount = filteredData.length;
     document.getElementById("recordStatus").innerHTML =
-      "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString();
+      "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString() + diagnosticNote;
   
   } catch (error) {
     showError(error.message || "Gagal memproses fail data.");
