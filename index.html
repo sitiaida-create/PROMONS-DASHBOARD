@@ -704,9 +704,9 @@
                 <i class="fa-solid fa-chart-column mr-2 text-blue-600"></i>
                 Ringkasan Quartile Mengikut Grant Category
               </h3>
-              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category.</p>
+              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category berasaskan Kolum AJ.</p>
             </div>
-            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile</span>
+            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile (Kolum AJ)</span>
           </div>
           <div class="table-wrapper">
             <table>
@@ -1840,9 +1840,9 @@ function parseGrantRow(row, sheetRowNumber) {
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
 
   const grantCategoryAktif = currentSource === "Geran Aktif"
-    ? (clean(row[activeGrantCategoryIndex]) || "Tidak Dinyatakan")
+    ? normalizeGrantCategory(row[activeGrantCategoryIndex])
     : "Tidak Dinyatakan";
-  const grantCategoryTamat = clean(row[COL.GRANT_CATEGORY_TAMAT]) || "Tidak Dinyatakan";
+  const grantCategoryTamat = normalizeGrantCategory(row[COL.GRANT_CATEGORY_TAMAT]);
   const grantCategory = currentSource === "Geran Tamat"
     ? grantCategoryTamat
     : grantCategoryAktif;
@@ -2118,6 +2118,24 @@ function normalizeQuartile(value) {
   return "Grant Not Monitored";
 }
 
+function normalizeGrantCategory(value) {
+  let cat = clean(value).replace(/\s+/g, " ").trim();
+  if (!cat || cat === "-" || cat === "--" || cat === "–") return "Tidak Dinyatakan";
+
+  const upper = cat.toUpperCase().replace(/[.,;:]+$/, "").trim();
+  if (upper === "GERAN LUAR" || upper.replace(/[\s_\-]+/g, "") === "GERANLUAR") {
+    return "GERAN LUAR";
+  }
+
+  for (const std of CATEGORY_ORDER) {
+    if (upper === std.toUpperCase()) {
+      return std;
+    }
+  }
+
+  return cat;
+}
+
 function parseDateValue(value) {
   if (!value) return null;
   if (value instanceof Date) return isNaN(value) ? null : value;
@@ -2239,7 +2257,10 @@ function populateFilters() {
   populateSelect("filterMonth", grantsData.map(d => d.month).filter(Boolean).sort((a,b) => Number(a) - Number(b)), "Semua Bulan", v => `${v} - ${getMonthName(Number(v)-1)}`);
   populateSelect("filterYear", grantsData.map(d => d.year).filter(Boolean).sort(), "Semua Tahun");
 
-  const verdicts = [...new Set(grantsData.map(d => d.verdict).filter(v => clean(v) !== ""))].sort(compareVerdicts);
+  const verdicts = [...new Set(grantsData.map(d => d.verdict).filter(v => {
+    const val = clean(v).toUpperCase();
+    return val !== "" && !val.includes("#NUM!") && val !== "TIDAK DINYATAKAN";
+  }))].sort(compareVerdicts);
   const verdictSelect = document.getElementById("filterVerdict");
   if (verdictSelect) {
     verdictSelect.innerHTML = `<option value="ALL">Semua Verdict</option>`;
@@ -2489,8 +2510,9 @@ function renderQuartileMatrix() {
   const AKTIF_GRANT_CATEGORY_INDEX = activeGrantCategoryIndex;
 
   const getAktifGrantCategory = (d) => {
+    if (d && d.grantCategory) return normalizeGrantCategory(d.grantCategory);
     if (!d || !Array.isArray(d.rawRow)) return "Tidak Dinyatakan";
-    return clean(d.rawRow[AKTIF_GRANT_CATEGORY_INDEX]) || "Tidak Dinyatakan";
+    return normalizeGrantCategory(d.rawRow[AKTIF_GRANT_CATEGORY_INDEX]);
   };
 
   const categories = [...new Set(
@@ -3161,7 +3183,7 @@ function setGraceChartFilter(mode) {
 
   if (subtitle) {
     if (mode === "in") {
-      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period.";
+      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period (Kolum AJ).";
     } else if (mode === "all") {
       subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi semua geran tamat.";
     } else {
