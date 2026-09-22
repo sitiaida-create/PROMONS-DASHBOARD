@@ -1675,16 +1675,24 @@ async function fetchCurrentSource() {
 
     if (rows.length < 2) throw new Error("Google Sheet tidak mengandungi data yang mencukupi.");
 
-    grantsData = rows.slice(1)
-      .map((row, index) => parseGrantRow(row, index + 2))
-      .filter(item => item.costCentre || item.grantTitle || item.staffName || item.projectEndKRaw);
+    // Baca SEMUA baris data yang mempunyai sekurang-kurangnya satu nilai.
+    // Jangan tapis berdasarkan Cost Centre / Grant Title / Staff / Project End
+    // kerana rekod yang mempunyai medan tersebut kosong masih merupakan
+    // rekod dalam Google Sheet dan perlu dikira dalam jumlah keseluruhan.
+    const dataRows = rows.slice(1).filter(row =>
+      Array.isArray(row) && row.some(cell => clean(cell) !== "")
+    );
+
+    grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
     populateFilters();
     applyFilters();
 
     loading.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    document.getElementById("recordStatus").innerText = `${grantsData.length.toLocaleString()} rekod`;
+    document.getElementById("recordStatus").innerText =
+      `${grantsData.length.toLocaleString()} rekod dibaca`;
+  
   } catch (error) {
     showError(error.message || "Gagal memproses fail data.");
   }
