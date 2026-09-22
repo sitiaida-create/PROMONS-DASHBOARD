@@ -904,7 +904,7 @@
           </div>
 
           <!-- Ringkasan Metrik Pantas Status Verdict Grace Period -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
             <!-- Cemerlang -->
             <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Cemerlang')" title="Klik untuk lihat maklumat geran Cemerlang">
               <div>
@@ -915,6 +915,19 @@
               </div>
               <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-check"></i>
+              </div>
+            </div>
+
+            <!-- Baik -->
+            <div class="p-3 bg-cyan-50 rounded-xl border border-cyan-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Baik')" title="Klik untuk lihat maklumat geran Baik">
+              <div>
+                <div class="text-[10px] font-bold text-cyan-800 uppercase">Baik</div>
+                <div class="text-[9px] text-cyan-600 font-semibold italic">Good</div>
+                <div id="statGraceBaik" class="text-lg font-extrabold text-cyan-700 leading-tight mt-0.5">0</div>
+                <div class="text-[9px] text-cyan-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+              </div>
+              <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
+                <i class="fa-solid fa-thumbs-up"></i>
               </div>
             </div>
 
@@ -3033,13 +3046,14 @@ function updateGraceVerdictChart() {
     targetData = filteredData.filter(d => !hasGracePeriod(d.gracePeriodRaw));
   }
 
-  let cemerlang = 0, memuaskan = 0, kurang = 0, bermasalah = 0;
+  let cemerlang = 0, baik = 0, memuaskan = 0, kurang = 0, bermasalah = 0;
   targetData.forEach(d => {
-    const idx = getVerdictOrderIndex(d.verdict);
+    const idx = getTamatVerdictOrderIndex(d.verdict);
     if (idx === 0) cemerlang++;
-    else if (idx === 1) memuaskan++;
-    else if (idx === 2) kurang++;
-    else if (idx === 3) bermasalah++;
+    else if (idx === 1) baik++;
+    else if (idx === 2) memuaskan++;
+    else if (idx === 3) kurang++;
+    else if (idx === 4) bermasalah++;
   });
 
   const elC = document.getElementById("statGraceCemerlang");
@@ -3048,6 +3062,8 @@ function updateGraceVerdictChart() {
   const elB = document.getElementById("statGraceBermasalah");
 
   if (elC) elC.innerText = cemerlang.toLocaleString();
+  const elBaik = document.getElementById("statGraceBaik");
+  if (elBaik) elBaik.innerText = baik.toLocaleString();
   if (elM) elM.innerText = memuaskan.toLocaleString();
   if (elK) elK.innerText = kurang.toLocaleString();
   if (elB) elB.innerText = bermasalah.toLocaleString();
@@ -3055,13 +3071,15 @@ function updateGraceVerdictChart() {
   const activeCats = [...new Set(targetData.map(d => d.grantCategory))].sort(compareGrantCategories);
   const displayCats = activeCats.length > 0 ? activeCats : CATEGORY_ORDER;
 
-  const dataCemerlang = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getVerdictOrderIndex(d.verdict) === 0).length);
-  const dataMemuaskan = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getVerdictOrderIndex(d.verdict) === 1).length);
-  const dataKurang = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getVerdictOrderIndex(d.verdict) === 2).length);
-  const dataBermasalah = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getVerdictOrderIndex(d.verdict) === 3).length);
+  const dataCemerlang = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 0).length);
+  const dataBaik = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 1).length);
+  const dataMemuaskan = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 2).length);
+  const dataKurang = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 3).length);
+  const dataBermasalah = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 4).length);
 
   const datasets = [
     { label: "Cemerlang", data: dataCemerlang, backgroundColor: "#10b981", borderRadius: 4 },
+    { label: "Baik", data: dataBaik, backgroundColor: "#06b6d4", borderRadius: 4 },
     { label: "Memuaskan", data: dataMemuaskan, backgroundColor: "#3b82f6", borderRadius: 4 },
     { label: "Kurang Memuaskan", data: dataKurang, backgroundColor: "#f59e0b", borderRadius: 4 },
     { label: "Bermasalah", data: dataBermasalah, backgroundColor: "#ef4444", borderRadius: 4 }
@@ -3122,7 +3140,7 @@ function showGraceVerdictBreakdown(verdictName) {
     contextLabel = "Luar Grace Period";
   }
 
-  const targetIdx = getVerdictOrderIndex(verdictName);
+  const targetIdx = getTamatVerdictOrderIndex(verdictName);
   const matchingGrants = targetData.filter(d => getVerdictOrderIndex(d.verdict) === targetIdx);
 
   currentModalVerdict = verdictName;
@@ -3135,9 +3153,10 @@ function showGraceVerdictBreakdown(verdictName) {
 
   let englishSubtitle = "";
   if (targetIdx === 0) englishSubtitle = " (Excellent)";
-  else if (targetIdx === 1) englishSubtitle = " (Satisfactory)";
-  else if (targetIdx === 2) englishSubtitle = " (Less Satisfactory)";
-  else if (targetIdx === 3) englishSubtitle = " (Problematic)";
+  else if (targetIdx === 1) englishSubtitle = " (Good)";
+  else if (targetIdx === 2) englishSubtitle = " (Satisfactory)";
+  else if (targetIdx === 3) englishSubtitle = " (Less Satisfactory)";
+  else if (targetIdx === 4) englishSubtitle = " (Problematic)";
 
   if (modalTitle) modalTitle.innerText = `Pecahan Verdict: ${verdictName}${englishSubtitle}`;
   if (modalBadge) {
