@@ -1428,8 +1428,10 @@ function parseCSVText(text) {
     } else if (char === ',' && !inQuotes) {
       row.push(currentVal);
       currentVal = '';
-    } else if ((char === '\r' || char === '\n') && !inQuotes) {
-      if (char === '\r' && nextChar === '\n') i++;
+    } else if ((char === '\r' || char === '
+') && !inQuotes) {
+      if (char === '\r' && nextChar === '
+') i++;
       row.push(currentVal);
       if (row.some(c => c.trim().length > 0)) {
         lines.push(row);
@@ -1454,14 +1456,16 @@ function unparseCSV(rows) {
   const headers = Object.keys(rows[0]);
   const escape = (val) => {
     const s = String(val ?? "");
-    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+    if (s.includes(",") || s.includes('"') || s.includes("
+")) {
       return `"${s.replace(/"/g, '""')}"`;
     }
     return s;
   };
   const headerLine = headers.map(escape).join(",");
   const bodyLines = rows.map(r => headers.map(h => escape(r[h])).join(","));
-  return [headerLine, ...bodyLines].join("\r\n");
+  return [headerLine, ...bodyLines].join("\r
+");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1711,8 +1715,11 @@ async function fetchCurrentSource() {
     // kerana rekod yang mempunyai medan tersebut kosong masih merupakan
     // rekod dalam Google Sheet dan perlu dikira dalam jumlah keseluruhan.
     const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
-    const dataRows = rows.slice(1).filter(row =>\n      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""\n    );
-    const parsedDataRows = dataRows.length;\n    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
+    const dataRows = rows.slice(1).filter(row =>
+      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
+    );
+    const parsedDataRows = dataRows.length;
+    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
