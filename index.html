@@ -81,7 +81,7 @@
       color: #ffffff;
     }
 
-    /* ================= MAIN WRAPPER ================= */
+    /* STREAMING_CHUNK:Styling main wrapper and containers -->
     .main-wrapper {
       margin-left: 250px;
       min-height: 100vh;
@@ -150,7 +150,7 @@
       line-height: 1.2;
     }
 
-    /* ================= FORM CONTROLS ================= */
+    /* STREAMING_CHUNK:Styling form controls and tables -->
     .filter-label {
       font-size: 11px;
       font-weight: 700;
@@ -203,13 +203,12 @@
       color: #ffffff;
     }
 
-    /* ================= CHARTS ================= */
+    /* ================= CHARTS & TABLES ================= */
     .chart-container {
       position: relative;
       height: 320px;
     }
 
-    /* ================= TABLES ================= */
     .table-wrapper {
       overflow-x: auto;
     }
@@ -244,7 +243,7 @@
       background: #fafafa;
     }
 
-    /* ================= BADGES ================= */
+    /* STREAMING_CHUNK:Styling badges, buttons, and modals -->
     .badge {
       display: inline-flex;
       align-items: center;
@@ -295,7 +294,6 @@
     .badge-blue { background: #dbeafe; color: #1e40af; }
     .badge-purple { background: #ede9fe; color: #6d28d9; }
 
-    /* ================= BUTTONS ================= */
     .btn {
       border: none;
       border-radius: 8px;
@@ -314,7 +312,6 @@
     .btn-light { background: #f3f4f6; color: #374151; }
     .btn-light:hover { background: #e5e7eb; }
 
-    /* ================= MODALS & STACKED Z-INDEX ================= */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -372,7 +369,7 @@
       word-break: break-word;
     }
 
-    /* ================= LOADING SPINNER ================= */
+    /* Loading Spinner */
     .loading {
       min-height: 300px;
       display: flex;
@@ -455,7 +452,6 @@
           <h1 class="text-xl md:text-2xl font-extrabold text-gray-900 leading-none">Dashboard Geran Penyelidikan</h1>
           <div class="flex items-center gap-2 mt-1.5">
             <span id="sourceBadge" class="badge badge-dark">Geran Aktif</span>
-            <div id="recordStatus" class="text-xs text-gray-500">Memuatkan data...</div>
           </div>
         </div>
       </div>
@@ -477,7 +473,6 @@
   </header>
 
   <main class="content">
-    <!-- Navigation Tabs -->
     <div class="card p-2 mb-5">
       <div class="flex flex-wrap gap-2">
         <button id="tabSummary" class="tab-btn active" onclick="switchTab('summary')">
@@ -499,7 +494,6 @@
       </div>
     </div>
 
-    <!-- Filter Data Section -->
     <section class="card p-5 mb-5">
       <div class="flex items-center justify-between mb-4">
         <div>
@@ -572,7 +566,7 @@
           </select>
         </div>
 
-        <!-- Penapis Khas Geran Tamat: Grace Period (Kolum AJ) -->
+        <!-- Penapis Khas Geran Tamat: Grace Period -->
         <div id="graceFilterWrap" class="hidden">
           <label class="filter-label">Grace Period</label>
           <select id="filterGracePeriod" class="filter-select" onchange="applyFilters()">
@@ -604,7 +598,6 @@
       </div>
     </section>
 
-    <!-- Loading & Error Indicators -->
     <div id="loadingPanel" class="card loading mb-5">
       <div class="spinner"></div>
       <div id="loadingText" class="text-sm font-semibold text-gray-600 mt-2">Sedang memuatkan data Google Sheet...</div>
@@ -622,7 +615,6 @@
       </div>
     </div>
 
-    <!-- Main Content Container -->
     <div id="dashboardContent" class="hidden">
       <!-- SUMMARY TAB -->
       <section id="summaryTab">
@@ -647,13 +639,13 @@
             <div id="kpiNotMonitored" class="kpi-number text-gray-600">0</div>
           </div>
 
-          <!-- Geran Aktif: PI Card (Kolum B) -->
+          <!-- Geran Aktif: PI Card -->
           <div id="kpiPICard" class="card kpi-card">
             <div class="kpi-title">Principal Investigator (PI)</div>
             <div id="kpiPI" class="kpi-number text-indigo-700">0</div>
           </div>
 
-          <!-- Geran Aktif: Non PI Card (Kolum B) -->
+          <!-- Geran Aktif: Non PI Card -->
           <div id="kpiNonPICard" class="card kpi-card">
             <div class="kpi-title">Non PI</div>
             <div id="kpiNonPI" class="kpi-number text-slate-600">0</div>
@@ -726,7 +718,7 @@
           </div>
         </div>
 
-        <!-- Verdict Summary Matrix (Dwibahasa di Baris ke-2) -->
+        <!-- Verdict Summary Matrix -->
         <div class="card mb-5">
           <div class="p-5 border-b border-gray-200 flex items-center justify-between">
             <div>
@@ -776,7 +768,6 @@
           </div>
         </div>
 
-        <!-- Strategic Summary Analysis -->
         <div class="card mb-5">
           <div class="p-5 border-b border-gray-200">
             <h3 class="font-bold text-gray-900 text-sm md:text-base">
@@ -805,7 +796,6 @@
           </div>
         </div>
 
-        <!-- Warning Cases Table (Bermasalah Sahaja) -->
         <div class="card">
           <div class="p-5 border-b border-gray-200 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -898,7 +888,7 @@
             </div>
           </div>
 
-          <!-- Ringkasan Metrik Pantas Status Verdict Grace Period (5-Status Tamat) -->
+          <!-- Ringkasan Metrik Pantas Status Verdict Grace Period -->
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
             <!-- Cemerlang -->
             <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Cemerlang')" title="Klik untuk lihat maklumat geran Cemerlang">
@@ -971,7 +961,6 @@
           </div>
         </div>
 
-        <!-- Susunan Visual Baharu Geran Aktif: 1. Grant Category -> 2. Verdict -> 3. Quartile -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <!-- 1. Grant Category Chart -->
           <div class="card p-5">
@@ -1050,7 +1039,6 @@
           </div>
         </div>
 
-        <!-- Jadual Ringkasan Matriks Item Tidak Capai -->
         <div class="card">
           <div class="p-5 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
@@ -1097,7 +1085,6 @@
           </div>
         </div>
 
-        <!-- Senarai Terperinci Geran dengan Item Tidak Capai -->
         <div class="card">
           <div class="p-5 border-b border-gray-200 flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -1218,7 +1205,7 @@
   </footer>
 </div>
 
-<!-- Modal Pecahan Verdict & Maklumat Geran (z-index: 100) -->
+<!-- Modal Pecahan Verdict & Maklumat Geran -->
 <div id="graceVerdictModal" class="modal-overlay" onclick="closeModalOnOverlay(event,'graceVerdictModal')">
   <div class="modal max-w-5xl">
     <div class="p-5 border-b border-gray-200 flex items-center justify-between">
@@ -1270,7 +1257,7 @@
   </div>
 </div>
 
-<!-- Modal Butiran Lengkap Geran (Lapisan Atas: z-index: 110) -->
+<!-- Modal Butiran Lengkap Geran -->
 <div id="detailModal" class="modal-overlay" onclick="closeModalOnOverlay(event,'detailModal')">
   <div class="modal max-w-3xl">
     <div class="p-5 border-b border-gray-200 flex items-center justify-between">
@@ -1353,8 +1340,6 @@ const COL = {
 };
 
 let currentSource = "Geran Aktif";
-// Geran Aktif: AJ (index 35) ialah fallback rasmi.
-// Jika header CSV ada, index sebenar "Grant Category" akan dikesan secara automatik.
 let activeGrantCategoryIndex = 35;
 
 let chartJsPromise = null;
@@ -1383,7 +1368,7 @@ try {
   localStorage.removeItem("geranAktifUrl");
   localStorage.removeItem("geranTamatUrl");
 } catch (e) {
-  // Abaikan jika localStorage tidak tersedia
+  // Ignore if localStorage unavailable
 }
 
 let grantsData = [];
@@ -1414,7 +1399,6 @@ let charts = {
 // Urutan Kategori Geran Rasmi
 const CATEGORY_ORDER = ["MOHE", "MOSTI", "RUG", "JTNCPI", "GERAN LUAR", "ICC", "CCIN", "CRAEG"];
 
-// Generator data pratonton 1,040 rekod sekiranya sambungan luar dihadkan
 function generateFallbackData(source) {
   const isTamat = source === "Geran Tamat";
   const rows = [];
@@ -1729,7 +1713,6 @@ async function fetchCurrentSource() {
   errorPanel.classList.add("hidden");
 
   document.getElementById("loadingText").innerText = `Sedang memuatkan data ${currentSource}...`;
-  document.getElementById("recordStatus").innerText = "Memuatkan data...";
 
   let timeoutId = null;
 
@@ -1751,13 +1734,12 @@ async function fetchCurrentSource() {
         csvString = await res.text();
       }
     } catch (directErr) {
-      console.warn("Direct fetch dihadkan atau gagal, mencuba fallback proxy...", directErr);
+      console.warn("Direct fetch dihadkan atau gagal, mencuba fallback...", directErr);
     }
     clearTimeout(timeoutId);
     timeoutId = null;
 
     if (!csvString || csvString.trim().length < 50) {
-      // Cuba CORS proxy sekiranya fetch terus terhalang
       try {
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(baseUrl)}`;
         const pRes = await fetch(proxyUrl, { cache: "no-store" });
@@ -1778,28 +1760,23 @@ async function fetchCurrentSource() {
     }
 
     if (rows.length < 2) {
-      console.warn("Google Sheet tiada data lengkap, memuatkan dataset lengkap 1,040 rekod.");
+      console.warn("Google Sheet tiada data lengkap, memuatkan dataset lengkap simulasi.");
       const sampleRows = generateFallbackData(currentSource);
       rows = [new Array(42).fill("Header"), ...sampleRows];
     }
 
-    // Kesan lajur "Grant Category" berdasarkan header CSV sebenar.
-    // Jika header tidak dapat dikesan, kekalkan Column AJ (index 35).
     activeGrantCategoryIndex = 35;
     if (Array.isArray(rows[0])) {
       const headerIndex = rows[0].findIndex(h => {
-        const normalized = clean(h).toUpperCase().replace(/\\s+/g, " ").trim();
+        const normalized = clean(h).toUpperCase().replace(/\s+/g, " ").trim();
         return normalized === "GRANT CATEGORY";
       });
       if (headerIndex >= 0) activeGrantCategoryIndex = headerIndex;
     }
 
-    const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
     const dataRows = rows.slice(1).filter(row => 
       Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
     );
-    const parsedDataRows = dataRows.length;
-    const diagnosticNote = "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
@@ -1808,9 +1785,6 @@ async function fetchCurrentSource() {
 
     loading.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    const filteredCount = filteredData.length;
-    document.getElementById("recordStatus").innerHTML =
-      "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString() + diagnosticNote;
   
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId);
@@ -1844,7 +1818,6 @@ function parseGrantRow(row, sheetRowNumber) {
 
   const effectiveEndRaw = hasExtension ? lRaw : kRaw;
   const effectiveEndDate = hasExtension ? (lDate || kDate) : kDate;
-  const effectiveYear = hasExtension ? (lYear || kYear) : kYear;
 
   const isEnded2026 = kYear === "2026" || /\b2026\b/.test(kRaw);
   const isEnded2026NoExt = (kYear === "2026" || /\b2026\b/.test(kRaw)) && isColLBlank;
@@ -1852,8 +1825,6 @@ function parseGrantRow(row, sheetRowNumber) {
   const quartile = normalizeQuartile(row[COL.QUARTILE]);
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
 
-  // GERAN AKTIF: Grant Category = COLUMN AJ sahaja (index 35).
-  // COLUMN AK (index 36) ialah PIC dan tidak digunakan sebagai kategori.
   const grantCategoryAktif = currentSource === "Geran Aktif"
     ? (clean(row[activeGrantCategoryIndex]) || "Tidak Dinyatakan")
     : "Tidak Dinyatakan";
@@ -1937,17 +1908,6 @@ function parseGrantRow(row, sheetRowNumber) {
     iprNotAchieved,
     hasUnachievedItem
   };
-}
-
-function columnLetter(index) {
-  let n = Number(index) + 1;
-  let letters = "";
-  while (n > 0) {
-    const rem = (n - 1) % 26;
-    letters = String.fromCharCode(65 + rem) + letters;
-    n = Math.floor((n - 1) / 26);
-  }
-  return letters;
 }
 
 function clean(value) {
@@ -2512,9 +2472,6 @@ function renderQuartileMatrix() {
   const tfoot = document.getElementById("quartileMatrixFoot");
   if (!tbody || !tfoot) return;
 
-  // GERAN AKTIF:
-  // Grant Category WAJIB datang daripada COLUMN AJ sahaja.
-  // A=0 ... AJ=35. COLUMN AK=36 ialah PIC dan TIDAK BOLEH digunakan.
   const AKTIF_GRANT_CATEGORY_INDEX = activeGrantCategoryIndex;
 
   const getAktifGrantCategory = (d) => {
@@ -2535,7 +2492,6 @@ function renderQuartileMatrix() {
   let totalQ1 = 0, totalQ2 = 0, totalQ3 = 0, totalQ4 = 0, totalQ5 = 0, totalAll = 0;
 
   tbody.innerHTML = categories.map(cat => {
-    // Tapis setiap baris menggunakan COLUMN AJ secara terus.
     const items = filteredData.filter(d => getAktifGrantCategory(d) === cat);
     const q1 = items.filter(d => d.quartile === "Q1").length;
     const q2 = items.filter(d => d.quartile === "Q2").length;
@@ -3890,7 +3846,6 @@ function showError(msg) {
   document.getElementById("dashboardContent").classList.add("hidden");
   document.getElementById("errorPanel").classList.remove("hidden");
   document.getElementById("errorMessage").innerText = msg;
-  document.getElementById("recordStatus").innerText = "Ralat memuatkan data";
 }
 
 function escapeHtml(str) {
