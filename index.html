@@ -704,9 +704,9 @@
                 <i class="fa-solid fa-chart-column mr-2 text-blue-600"></i>
                 Ringkasan Quartile Mengikut Grant Category
               </h3>
-              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category.</p>
+              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category berasaskan Kolum AJ.</p>
             </div>
-            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile</span>
+            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile (Kolum AJ)</span>
           </div>
           <div class="table-wrapper">
             <table>
@@ -899,6 +899,36 @@
             </div>
           </div>
 
+          <!-- Justifikasi / Definisi Verdict Geran Tamat (Bahagian Atas) -->
+          <div class="mb-5 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div class="flex items-center gap-2 mb-3">
+              <i class="fa-solid fa-circle-info text-purple-600"></i>
+              <h4 class="font-bold text-sm text-gray-900">Definisi Prestasi Mengikut Verdict</h4>
+            </div>
+            <div class="space-y-3 text-xs text-gray-700 leading-relaxed">
+              <div>
+                <span class="font-bold text-emerald-700">Cemerlang / Excellent</span>
+                <p>Prestasi keseluruhan mencapai 100% dengan semua KPI yang dinilai mencapai sekurang-kurangnya 100%, serta terdapat KPI yang melebihi sasaran.</p>
+              </div>
+              <div>
+                <span class="font-bold text-cyan-700">Baik / Good</span>
+                <p>Prestasi keseluruhan mencapai 100% dan semua KPI yang dinilai mencapai sasaran 100%, menunjukkan pencapaian yang baik dan menepati sasaran yang ditetapkan.</p>
+              </div>
+              <div>
+                <span class="font-bold text-blue-700">Memuaskan / Satisfactory</span>
+                <p>Prestasi keseluruhan mencapai sekurang-kurangnya 75% dan majoriti KPI yang dinilai mencapai sasaran, dengan hanya satu KPI menunjukkan pencapaian di bawah 100%.</p>
+              </div>
+              <div>
+                <span class="font-bold text-amber-700">Kurang Memuaskan / Less Satisfactory</span>
+                <p>Prestasi keseluruhan masih berada pada tahap yang memerlukan perhatian kerana terdapat lebih daripada satu KPI yang menunjukkan pencapaian di bawah sasaran.</p>
+              </div>
+              <div>
+                <span class="font-bold text-red-700">Bermasalah / Problematic</span>
+                <p>Prestasi keseluruhan berada di bawah 50% atau semua KPI yang dinilai menunjukkan pencapaian di bawah sasaran, menunjukkan keperluan tindakan pemantauan dan intervensi segera.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Ringkasan Metrik Pantas Status Verdict Grace Period (5-Status Tamat) -->
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
             <!-- Cemerlang -->
@@ -970,38 +1000,6 @@
           <div class="chart-container" style="height: 360px;">
             <canvas id="chartGraceVerdictCategory"></canvas>
           </div>
-
-<!-- Justifikasi / Definisi Verdict Geran Tamat -->
-          <div class="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-            <div class="flex items-center gap-2 mb-3">
-              <i class="fa-solid fa-circle-info text-purple-600"></i>
-              <h4 class="font-bold text-sm text-gray-900">Definisi Prestasi Mengikut Verdict</h4>
-            </div>
-            <div class="space-y-3 text-xs text-gray-700 leading-relaxed">
-              <div>
-                <span class="font-bold text-emerald-700">Cemerlang / Excellent</span>
-                <p>Prestasi keseluruhan mencapai 100% dengan semua KPI yang dinilai mencapai sekurang-kurangnya 100%, serta terdapat KPI yang melebihi sasaran.</p>
-              </div>
-              <div>
-                <span class="font-bold text-cyan-700">Baik / Good</span>
-                <p>Prestasi keseluruhan mencapai 100% dan semua KPI yang dinilai mencapai sasaran 100%, menunjukkan pencapaian yang baik dan menepati sasaran yang ditetapkan.</p>
-              </div>
-              <div>
-                <span class="font-bold text-blue-700">Memuaskan / Satisfactory</span>
-                <p>Prestasi keseluruhan mencapai sekurang-kurangnya 75% dan majoriti KPI yang dinilai mencapai sasaran, dengan hanya satu KPI menunjukkan pencapaian di bawah 100%.</p>
-              </div>
-              <div>
-                <span class="font-bold text-amber-700">Kurang Memuaskan / Less Satisfactory</span>
-                <p>Prestasi keseluruhan masih berada pada tahap yang memerlukan perhatian kerana terdapat lebih daripada satu KPI yang menunjukkan pencapaian di bawah sasaran.</p>
-              </div>
-              <div>
-                <span class="font-bold text-red-700">Bermasalah / Problematic</span>
-                <p>Prestasi keseluruhan berada di bawah 50% atau semua KPI yang dinilai menunjukkan pencapaian di bawah sasaran, menunjukkan keperluan tindakan pemantauan dan intervensi segera.</p>
-              </div>
-            </div>
-          </div>
-
-          
         </div>
 
         <!-- Susunan Visual Baharu Geran Aktif: 1. Grant Category -> 2. Verdict -> 3. Quartile -->
@@ -1810,7 +1808,7 @@ async function fetchCurrentSource() {
     }
 
     if (rows.length < 2) {
-      console.warn("Google Sheet tiada data lengkap, memuatkan dataset fallback 1,040 rekod.");
+      console.warn("Google Sheet tiada data lengkap, memuatkan dataset lengkap 1,040 rekod.");
       const sampleRows = generateFallbackData(currentSource);
       rows = [new Array(42).fill("Header"), ...sampleRows];
     }
@@ -3219,7 +3217,7 @@ function setGraceChartFilter(mode) {
 
   if (subtitle) {
     if (mode === "in") {
-      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period.";
+      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period (Kolum AJ).";
     } else if (mode === "all") {
       subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi semua geran tamat.";
     } else {
@@ -3360,7 +3358,7 @@ function showGraceVerdictBreakdown(verdictName) {
     modalBadge.className = `badge ${verdictBadgeClass(verdictName)}`;
   }
   if (modalSubtitle) {
-    modalSubtitle.innerText = `Menunjukkan bilangan geran dan senarai maklumat geran bagi status ${verdictName} (${contextLabel}.`;
+    modalSubtitle.innerText = `Menunjukkan bilangan geran dan senarai maklumat geran bagi status ${verdictName} (${contextLabel} - Kolum AJ).`;
   }
 
   const catCounts = {};
