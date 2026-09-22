@@ -1799,7 +1799,7 @@ async function fetchCurrentSource() {
       Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
     );
     const parsedDataRows = dataRows.length;
-    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
+    const diagnosticNote = "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
