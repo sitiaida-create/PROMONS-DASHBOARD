@@ -1412,7 +1412,7 @@ function parseCSVText(text) {
   const lines = [];
   let row = [];
   let inQuotes = false;
-  let currentVal = "";
+  let currentVal = '';
 
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
@@ -1425,40 +1425,40 @@ function parseCSVText(text) {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (char === "," && !inQuotes) {
+    } else if (char === ',' && !inQuotes) {
       row.push(currentVal);
-      currentVal = "";
-    } else if ((char === "\r" || char === "\n") && !inQuotes) {
-      if (char === "\r" && nextChar === "\n") i++;
+      currentVal = '';
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++;
       row.push(currentVal);
-      if (row.some(c => c.trim().length > 0)) lines.push(row);
+      if (row.some(c => c.trim().length > 0)) {
+        lines.push(row);
+      }
       row = [];
-      currentVal = "";
+      currentVal = '';
     } else {
       currentVal += char;
     }
   }
-
   if (currentVal.length > 0 || row.length > 0) {
     row.push(currentVal);
-    if (row.some(c => c.trim().length > 0)) lines.push(row);
+    if (row.some(c => c.trim().length > 0)) {
+      lines.push(row);
+    }
   }
-
   return lines;
 }
 
 function unparseCSV(rows) {
   if (!rows || !rows.length) return "";
   const headers = Object.keys(rows[0]);
-
   const escape = (val) => {
     const s = String(val ?? "");
-    if (s.includes(",") || s.includes('"') || s.includes("\n") || s.includes("\r")) {
-      return '"' + s.replace(/"/g, '""') + '"';
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
     }
     return s;
   };
-
   const headerLine = headers.map(escape).join(",");
   const bodyLines = rows.map(r => headers.map(h => escape(r[h])).join(","));
   return [headerLine, ...bodyLines].join("\r\n");
@@ -1485,14 +1485,6 @@ async function initDashboard() {
   ensureChartJs().catch(() => {});
 
   await fetchCurrentSource();
-
-  // Segarkan data secara automatik setiap 2 minit supaya dashboard
-  // sentiasa memaparkan data terkini daripada Google Sheet.
-  setInterval(() => {
-    if (document.visibilityState === "visible") {
-      fetchCurrentSource();
-    }
-  }, 120000);
 }
 
 async function selectSource(source) {
@@ -1673,18 +1665,14 @@ async function fetchCurrentSource() {
     const baseUrl = sourceUrls[currentSource];
     if (!baseUrl) throw new Error("URL Google Sheet tidak ditetapkan.");
 
-    // Ambil data TERKINI daripada Google Sheet setiap kali dashboard dibuka/refresh.
-    // Timestamp mengelakkan browser/CDN menggunakan CSV lama.
-    const liveUrl = baseUrl + (baseUrl.includes("?") ? "&" : "?") + "_live=" + Date.now();
-
     // Guna cache browser/CDN untuk loading awal yang lebih pantas.
     // Elakkan cache-busting pada setiap loading kerana ia memaksa network request baru.
     const controller = new AbortController();
     timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const res = await fetch(liveUrl, {
+    const res = await fetch(baseUrl, {
       method: "GET",
-      cache: "no-store",
+      cache: "default",
       signal: controller.signal
     });
 
@@ -1711,11 +1699,8 @@ async function fetchCurrentSource() {
     // kerana rekod yang mempunyai medan tersebut kosong masih merupakan
     // rekod dalam Google Sheet dan perlu dikira dalam jumlah keseluruhan.
     const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
-    const dataRows = rows.slice(1).filter(row =>
-      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
-    );
-    const parsedDataRows = dataRows.length;
-    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
+    const dataRows = rows.slice(1).filter(row =>\n      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""\n    );
+    const parsedDataRows = dataRows.length;\n    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
@@ -1726,10 +1711,7 @@ async function fetchCurrentSource() {
     dashboard.classList.remove("hidden");
     const filteredCount = filteredData.length;
     document.getElementById("recordStatus").innerHTML =
-      "Live Google Sheet · " + new Date().toLocaleTimeString("ms-MY") +
-      " · CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " +
-      parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString() +
-      diagnosticNote;
+      "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString() + diagnosticNote;
   
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId);
@@ -3026,10 +3008,6 @@ function renderOrUpdateDoughnutChart(chartKey, canvasId, labels, data, colors) {
 }
 
 function updateCharts() {
-  if (typeof Chart === "undefined") {
-    ensureChartJs().then(() => updateCharts()).catch(() => {});
-    return;
-  }
   const isTamat = currentSource === "Geran Tamat";
   const monitoredList = ["Q1", "Q2", "Q3", "Q4", "Q5 (Extension)"];
 
