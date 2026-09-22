@@ -2067,7 +2067,7 @@ function getVerdictOrderIndex(verdict) {
   const t = String(verdict || "").toUpperCase().trim();
   if (/\bBS\b/.test(t) || t.includes("KURANG MEMUASKAN") || t.includes("BEHIND")) return 2;
   if (/\bPW\b/.test(t) || t.includes("CEMERLANG") || t.includes("PROGRESSING WELL") || t.includes("EXCELLENT")) return 0;
-  if (/\bOS\b/.test(t) || t.includes("MEMUASKAN") || t.includes("ON SCHEDULE") || t.includes("SATISFACTORY")) return 1;
+  if (/\bOS\b/.test(t) || t.includes("BAIK") || t.includes("MEMUASKAN") || t.includes("ON SCHEDULE") || t.includes("SATISFACTORY")) return 1;
   if (/\bNCM\b/.test(t) || t.includes("BERMASALAH") || t.includes("NEED CLOSE") || t.includes("NEED CLOSER") || t.includes("KRITIKAL") || t.includes("GAGAL")) return 3;
   return 4;
 }
