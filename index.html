@@ -6,21 +6,10 @@
   <title>Dashboard Geran Penyelidikan</title>
 
   <!-- Tailwind CSS & FontAwesome -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com" async></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- PapaParse with secondary CDN fallback -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script>
-    if (typeof Papa === 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/papaparse@5.4.3/papaparse.min.js';
-      document.head.appendChild(script);
-    }
-  </script>
+  <!-- Chart.js & PapaParse dimuat selepas halaman mula, supaya tidak menghalang loading data. -->
 
   <style>
     * {
@@ -1355,6 +1344,26 @@ const COL = {
 
 let currentSource = "Geran Aktif";
 
+// Chart.js tidak lagi menghalang loading data.
+// Ia dimuat secara asynchronous selepas data mula diproses.
+let chartJsPromise = null;
+function ensureChartJs() {
+  if (typeof Chart !== "undefined") return Promise.resolve();
+  if (chartJsPromise) return chartJsPromise;
+
+  chartJsPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Gagal memuatkan Chart.js."));
+    document.head.appendChild(script);
+  });
+
+  return chartJsPromise;
+}
+
+
 // Sumber data rasmi dashboard.
 // Jangan gunakan localStorage untuk URL sumber supaya semua browser
 // (Chrome, Edge, Firefox) sentiasa menggunakan sumber yang sama.
@@ -1470,6 +1479,11 @@ document.addEventListener("DOMContentLoaded", () => {
 async function initDashboard() {
   updateSourceButtons();
   updateSourceUI();
+
+  // Mula muat Chart.js di belakang tabir, tetapi jangan tunggu ia
+  // sebelum request Google Sheet bermula.
+  ensureChartJs().catch(() => {});
+
   await fetchCurrentSource();
 }
 
