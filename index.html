@@ -1872,6 +1872,7 @@ function parseGrantRow(row, sheetRowNumber) {
   return {
     id: `${currentSource}-${sheetRowNumber}`,
     sheetRow: sheetRowNumber,
+    rawRow: row,
     isPI,
     piRaw,
     costCentre,
@@ -2482,9 +2483,17 @@ function renderQuartileMatrix() {
   const tfoot = document.getElementById("quartileMatrixFoot");
   if (!tbody || !tfoot) return;
 
-  // Bagi GERAN AKTIF: Maklumat Grant Category diambil secara khusus daripada KOLUM AJ (Index 35)
+  // GERAN AKTIF:
+  // Grant Category MESTI dibaca terus daripada COLUMN AJ.
+  // Dalam array CSV, COLUMN AJ = index 35 (A=0 ... AJ=35).
+  // Jangan gunakan Column AK (index 36) yang mengandungi PIC.
+  const getAktifGrantCategory = (d) => {
+    const rawAj = d && Array.isArray(d.rawRow) ? d.rawRow[35] : "";
+    return clean(rawAj) || "Tidak Dinyatakan";
+  };
+
   const categories = [...new Set(
-    filteredData.map(d => clean(d.grantCategoryAktif) || "Tidak Dinyatakan")
+    filteredData.map(getAktifGrantCategory)
   )].sort(compareGrantCategories);
 
   if (!categories.length) {
@@ -2496,8 +2505,8 @@ function renderQuartileMatrix() {
   let totalQ1 = 0, totalQ2 = 0, totalQ3 = 0, totalQ4 = 0, totalQ5 = 0, totalAll = 0;
 
   tbody.innerHTML = categories.map(cat => {
-    // Tapis setiap baris berdasarkan padanan nilai Kolum AJ
-    const items = filteredData.filter(d => (clean(d.grantCategoryAktif) || "Tidak Dinyatakan") === cat);
+    // Tapis setiap baris menggunakan COLUMN AJ secara terus.
+    const items = filteredData.filter(d => getAktifGrantCategory(d) === cat);
     const q1 = items.filter(d => d.quartile === "Q1").length;
     const q2 = items.filter(d => d.quartile === "Q2").length;
     const q3 = items.filter(d => d.quartile === "Q3").length;
