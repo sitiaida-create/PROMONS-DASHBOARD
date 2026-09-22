@@ -463,7 +463,7 @@
           <h1 class="text-xl md:text-2xl font-extrabold text-gray-900 leading-none">Dashboard Geran Penyelidikan</h1>
           <div class="flex items-center gap-2 mt-1.5">
             <span id="sourceBadge" class="badge badge-dark">Geran Aktif</span>
-            <span id="recordStatus" class="text-xs text-gray-500">Memuatkan data...</span>
+            <div id="recordStatus" class="text-xs text-gray-500">Memuatkan data...</div>
           </div>
         </div>
       </div>
@@ -1665,6 +1665,9 @@ async function fetchCurrentSource() {
     if (!res.ok) throw new Error(`Ralat pelayan: ${res.status} ${res.statusText}`);
     const csvString = await res.text();
 
+    // Diagnostic: tiga angka utama untuk mengesan perbezaan jumlah rekod.
+    const csvTextLength = csvString.length;
+
     let rows = [];
     if (typeof Papa !== 'undefined' && Papa && typeof Papa.parse === 'function') {
       const parsed = Papa.parse(csvString, { skipEmptyLines: true });
@@ -1679,9 +1682,11 @@ async function fetchCurrentSource() {
     // Jangan tapis berdasarkan Cost Centre / Grant Title / Staff / Project End
     // kerana rekod yang mempunyai medan tersebut kosong masih merupakan
     // rekod dalam Google Sheet dan perlu dikira dalam jumlah keseluruhan.
+    const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
     const dataRows = rows.slice(1).filter(row =>
       Array.isArray(row) && row.some(cell => clean(cell) !== "")
     );
+    const parsedDataRows = dataRows.length;
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
@@ -1690,8 +1695,9 @@ async function fetchCurrentSource() {
 
     loading.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    document.getElementById("recordStatus").innerText =
-      `${grantsData.length.toLocaleString()} rekod dibaca`;
+    const filteredCount = filteredData.length;
+    document.getElementById("recordStatus").innerHTML =
+      "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString();
   
   } catch (error) {
     showError(error.message || "Gagal memproses fail data.");
