@@ -2417,7 +2417,7 @@ function getTamatVerdictOrderIndex(verdict) {
   const t = String(verdict || "").toUpperCase().trim();
 
   if (t.includes("CEMERLANG") || t.includes("EXCELLENT") || /\\bPW\\b/.test(t) || t.includes("PROGRESSING WELL")) return 0;
-  if (t === "BAIK") return 1;
+  if (t.includes("BAIK") || t.includes("GOOD")) return 1;
   if (t.includes("MEMUASKAN") || t.includes("SATISFACTORY") || /\\bOS\\b/.test(t) || t.includes("ON SCHEDULE")) return 2;
   if (t.includes("KURANG MEMUASKAN") || t.includes("LESS SATISFACTORY") || /\\bBS\\b/.test(t) || t.includes("BEHIND")) return 3;
   if (t.includes("BERMASALAH") || t.includes("PROBLEMATIC") || /\\bNCM\\b/.test(t) || t.includes("NEED CLOSE")) return 4;
