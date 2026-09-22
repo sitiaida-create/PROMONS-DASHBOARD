@@ -1645,25 +1645,27 @@ async function fetchCurrentSource() {
   document.getElementById("loadingText").innerText = `Sedang memuatkan data ${currentSource}...`;
   document.getElementById("recordStatus").innerText = "Memuatkan data...";
 
+  let timeoutId = null;
+
   try {
     const baseUrl = sourceUrls[currentSource];
     if (!baseUrl) throw new Error("URL Google Sheet tidak ditetapkan.");
 
-    // Cache-busting + no-store memastikan data CSV terkini digunakan
-    // dan mengurangkan perbezaan antara browser/CDN cache.
-    const cacheBuster = Date.now();
-    const separator = baseUrl.includes("?") ? "&" : "?";
-    const url = `${baseUrl}${separator}v=${cacheBuster}`;
+    // Guna cache browser/CDN untuk loading awal yang lebih pantas.
+    // Elakkan cache-busting pada setiap loading kerana ia memaksa network request baru.
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const res = await fetch(url, {
+    const res = await fetch(baseUrl, {
       method: "GET",
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache"
-      }
+      cache: "default",
+      signal: controller.signal
     });
+
     if (!res.ok) throw new Error(`Ralat pelayan: ${res.status} ${res.statusText}`);
     const csvString = await res.text();
+    clearTimeout(timeoutId);
+    timeoutId = null;
 
     // Diagnostic: tiga angka utama untuk mengesan perbezaan jumlah rekod.
     const csvTextLength = csvString.length;
@@ -1698,7 +1700,12 @@ async function fetchCurrentSource() {
       "CSV: " + rawCsvRows.toLocaleString() + " baris · Parsed: " + parsedDataRows.toLocaleString() + " · Filter: " + filteredCount.toLocaleString() + diagnosticNote;
   
   } catch (error) {
-    showError(error.message || "Gagal memproses fail data.");
+    if (timeoutId) clearTimeout(timeoutId);
+    if (error && error.name === "AbortError") {
+      showError("Google Sheet mengambil masa lebih 10 saat untuk memberi respons. Sila cuba Refresh.");
+    } else {
+      showError(error.message || "Gagal memproses fail data.");
+    }
   }
 }
 
