@@ -769,6 +769,10 @@
                     <div>NCM</div>
                     <div class="text-[10px] font-normal text-gray-500 normal-case">Need Close Monitoring</div>
                   </th>
+                  <th id="thVerdictProblem" class="hidden text-center text-red-700">
+                    <div>Bermasalah</div>
+                    <div class="text-[10px] font-normal text-gray-500 normal-case">Problematic</div>
+                  </th>
                   <th class="text-center font-extrabold bg-gray-100">Jumlah</th>
                 </tr>
               </thead>
@@ -2409,55 +2413,113 @@ function renderQuartileMatrix() {
   `;
 }
 
+function getTamatVerdictOrderIndex(verdict) {
+  const t = String(verdict || "").toUpperCase().trim();
+
+  if (t.includes("CEMERLANG") || t.includes("EXCELLENT") || /\\bPW\\b/.test(t) || t.includes("PROGRESSING WELL")) return 0;
+  if (t === "BAIK") return 1;
+  if (t.includes("MEMUASKAN") || t.includes("SATISFACTORY") || /\\bOS\\b/.test(t) || t.includes("ON SCHEDULE")) return 2;
+  if (t.includes("KURANG MEMUASKAN") || t.includes("LESS SATISFACTORY") || /\\bBS\\b/.test(t) || t.includes("BEHIND")) return 3;
+  if (t.includes("BERMASALAH") || t.includes("PROBLEMATIC") || /\\bNCM\\b/.test(t) || t.includes("NEED CLOSE")) return 4;
+
+  return 5;
+}
+
 function renderVerdictMatrix() {
   const tbody = document.getElementById("verdictMatrixBody");
   const tfoot = document.getElementById("verdictMatrixFoot");
   if (!tbody || !tfoot) return;
 
   const targetData = filteredData;
+  const isTamat = currentSource === "Geran Tamat";
 
-  // Ringkasan Verdict Mengikut Grant Category:
-  // Geran Aktif  -> Grant Category dibaca daripada column AJ
-  // Geran Tamat  -> Grant Category dibaca daripada column AK
-  // Nilai ini ditetapkan semasa parseGrantRow() melalui
-  // COL.GRANT_CATEGORY_AKTIF / COL.GRANT_CATEGORY_TAMAT.
+  const thPW = document.getElementById("thVerdictPW");
+  const thOS = document.getElementById("thVerdictOS");
+  const thBS = document.getElementById("thVerdictBS");
+  const thNCM = document.getElementById("thVerdictNCM");
+  const thProblem = document.getElementById("thVerdictProblem");
+
+  if (isTamat) {
+    if (thPW) {
+      thPW.className = "text-center text-emerald-700";
+      thPW.innerHTML = "<div>Cemerlang</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Excellent</div>";
+    }
+    if (thOS) {
+      thOS.className = "text-center text-blue-700";
+      thOS.innerHTML = "<div>Baik</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Good</div>";
+    }
+    if (thBS) {
+      thBS.className = "text-center text-blue-700";
+      thBS.innerHTML = "<div>Memuaskan</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Satisfactory</div>";
+    }
+    if (thNCM) {
+      thNCM.className = "text-center text-amber-700";
+      thNCM.innerHTML = "<div>Kurang Memuaskan</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Less Satisfactory</div>";
+    }
+    if (thProblem) {
+      thProblem.className = "text-center text-red-700";
+      thProblem.innerHTML = "<div>Bermasalah</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Problematic</div>";
+    }
+  } else {
+    if (thPW) {
+      thPW.className = "text-center text-emerald-700";
+      thPW.innerHTML = "<div>PW</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Progressing Well</div>";
+    }
+    if (thOS) {
+      thOS.className = "text-center text-blue-700";
+      thOS.innerHTML = "<div>OS</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">On Schedule</div>";
+    }
+    if (thBS) {
+      thBS.className = "text-center text-amber-700";
+      thBS.innerHTML = "<div>BS</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Behind Schedule</div>";
+    }
+    if (thNCM) {
+      thNCM.className = "text-center text-red-700";
+      thNCM.innerHTML = "<div>NCM</div><div class=\"text-[10px] font-normal text-gray-500 normal-case\">Need Close Monitoring</div>";
+    }
+    if (thProblem) thProblem.className = "hidden";
+  }
+
   const getSummaryGrantCategory = (d) => clean(d.grantCategory) || "Tidak Dinyatakan";
-
   const categories = [...new Set(targetData.map(getSummaryGrantCategory))].sort(compareGrantCategories);
+
   if (!categories.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-gray-400 italic">Tiada data</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${isTamat ? 7 : 6}" class="py-6 text-center text-gray-400 italic">Tiada data</td></tr>`;
     tfoot.innerHTML = "";
     return;
   }
 
-  let totalPW = 0, totalOS = 0, totalBS = 0, totalNCM = 0, totalAll = 0;
+  let total0 = 0, total1 = 0, total2 = 0, total3 = 0, total4 = 0, totalAll = 0;
 
   tbody.innerHTML = categories.map(cat => {
     const items = targetData.filter(d => getSummaryGrantCategory(d) === cat);
-    let pw = 0, os = 0, bs = 0, ncm = 0;
+    let v0 = 0, v1 = 0, v2 = 0, v3 = 0, v4 = 0;
 
     items.forEach(d => {
-      const idx = getVerdictOrderIndex(d.verdict);
-      if (idx === 0) pw++;
-      else if (idx === 1) os++;
-      else if (idx === 2) bs++;
-      else if (idx === 3) ncm++;
+      const idx = isTamat ? getTamatVerdictOrderIndex(d.verdict) : getVerdictOrderIndex(d.verdict);
+      if (idx === 0) v0++;
+      else if (idx === 1) v1++;
+      else if (idx === 2) v2++;
+      else if (idx === 3) v3++;
+      else if (isTamat && idx === 4) v4++;
     });
 
-    const sum = pw + os + bs + ncm;
-    totalPW += pw;
-    totalOS += os;
-    totalBS += bs;
-    totalNCM += ncm;
+    const sum = v0 + v1 + v2 + v3 + v4;
+    total0 += v0;
+    total1 += v1;
+    total2 += v2;
+    total3 += v3;
+    total4 += v4;
     totalAll += sum;
 
     return `
       <tr>
         <td class="font-bold text-gray-900">${escapeHtml(cat)}</td>
-        <td class="text-center font-semibold text-emerald-700">${pw}</td>
-        <td class="text-center font-semibold text-blue-700">${os}</td>
-        <td class="text-center font-semibold text-amber-700">${bs}</td>
-        <td class="text-center font-semibold text-red-700">${ncm}</td>
+        <td class="text-center font-semibold text-emerald-700">${v0}</td>
+        <td class="text-center font-semibold text-blue-700">${v1}</td>
+        <td class="text-center font-semibold text-blue-700">${v2}</td>
+        <td class="text-center font-semibold text-amber-700">${v3}</td>
+        ${isTamat ? `<td class="text-center font-semibold text-red-700">${v4}</td>` : ""}
         <td class="text-center font-extrabold bg-gray-50 text-gray-900">${sum}</td>
       </tr>
     `;
@@ -2466,10 +2528,11 @@ function renderVerdictMatrix() {
   tfoot.innerHTML = `
     <tr>
       <td class="text-gray-900 font-extrabold">JUMLAH KESELURUHAN</td>
-      <td class="text-center text-emerald-700 font-extrabold">${totalPW}</td>
-      <td class="text-center text-blue-700 font-extrabold">${totalOS}</td>
-      <td class="text-center text-amber-700 font-extrabold">${totalBS}</td>
-      <td class="text-center text-red-700 font-extrabold">${totalNCM}</td>
+      <td class="text-center text-emerald-700 font-extrabold">${total0}</td>
+      <td class="text-center text-blue-700 font-extrabold">${total1}</td>
+      <td class="text-center text-blue-700 font-extrabold">${total2}</td>
+      <td class="text-center text-amber-700 font-extrabold">${total3}</td>
+      ${isTamat ? `<td class="text-center text-red-700 font-extrabold">${total4}</td>` : ""}
       <td class="text-center text-gray-900 font-extrabold bg-gray-100">${totalAll}</td>
     </tr>
   `;
@@ -2534,16 +2597,17 @@ function renderFRStatusBadge(status) {
 
 function renderVerdictBadge(verdict) {
   const isTamat = currentSource === "Geran Tamat";
-  const idx = getVerdictOrderIndex(verdict);
+  const idx = isTamat ? getTamatVerdictOrderIndex(verdict) : getVerdictOrderIndex(verdict);
   let cls = "badge-gray";
   let line1 = escapeHtml(verdict);
   let line2 = "";
 
   if (isTamat) {
     if (idx === 0) { cls = "badge-green"; line1 = "Cemerlang"; line2 = "Excellent"; }
-    else if (idx === 1) { cls = "badge-blue"; line1 = "Memuaskan"; line2 = "Satisfactory"; }
-    else if (idx === 2) { cls = "badge-yellow"; line1 = "Kurang Memuaskan"; line2 = "Less Satisfactory"; }
-    else if (idx === 3) { cls = "badge-red"; line1 = "Bermasalah"; line2 = "Problematic"; }
+    else if (idx === 1) { cls = "badge-blue"; line1 = "Baik"; line2 = "Good"; }
+    else if (idx === 2) { cls = "badge-blue"; line1 = "Memuaskan"; line2 = "Satisfactory"; }
+    else if (idx === 3) { cls = "badge-yellow"; line1 = "Kurang Memuaskan"; line2 = "Less Satisfactory"; }
+    else if (idx === 4) { cls = "badge-red"; line1 = "Bermasalah"; line2 = "Problematic"; }
   } else {
     if (idx === 0) { cls = "badge-green"; line1 = "PW"; line2 = "Progressing Well"; }
     else if (idx === 1) { cls = "badge-blue"; line1 = "OS"; line2 = "On Schedule"; }
