@@ -1353,6 +1353,9 @@ const COL = {
 };
 
 let currentSource = "Geran Aktif";
+// Geran Aktif: AJ (index 35) ialah fallback rasmi.
+// Jika header CSV ada, index sebenar "Grant Category" akan dikesan secara automatik.
+let activeGrantCategoryIndex = 35;
 
 let chartJsPromise = null;
 function ensureChartJs() {
@@ -1780,12 +1783,25 @@ async function fetchCurrentSource() {
       rows = [new Array(42).fill("Header"), ...sampleRows];
     }
 
+    // Kesan lajur "Grant Category" berdasarkan header CSV sebenar.
+    // Jika header tidak dapat dikesan, kekalkan Column AJ (index 35).
+    activeGrantCategoryIndex = 35;
+    if (Array.isArray(rows[0])) {
+      const headerIndex = rows[0].findIndex(h => {
+        const normalized = clean(h).toUpperCase().replace(/\\s+/g, " ").trim();
+        return normalized === "GRANT CATEGORY";
+      });
+      if (headerIndex >= 0) activeGrantCategoryIndex = headerIndex;
+    }
+
     const rawCsvRows = rows.length > 0 ? rows.length - 1 : 0;
     const dataRows = rows.slice(1).filter(row => 
       Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
     );
     const parsedDataRows = dataRows.length;
-    const diagnosticNote = currentSource === "Geran Aktif" ? " · Rekod dikira berdasarkan Column C" : "";
+    const diagnosticNote = currentSource === "Geran Aktif"
+      ? " · Rekod dikira berdasarkan Column C · Grant Category: " + columnLetter(activeGrantCategoryIndex)
+      : "";
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
 
@@ -1841,7 +1857,7 @@ function parseGrantRow(row, sheetRowNumber) {
   // GERAN AKTIF: Grant Category = COLUMN AJ sahaja (index 35).
   // COLUMN AK (index 36) ialah PIC dan tidak digunakan sebagai kategori.
   const grantCategoryAktif = currentSource === "Geran Aktif"
-    ? (clean(row[COL.GRANT_CATEGORY_AKTIF]) || "Tidak Dinyatakan")
+    ? (clean(row[activeGrantCategoryIndex]) || "Tidak Dinyatakan")
     : "Tidak Dinyatakan";
   const grantCategoryTamat = clean(row[COL.GRANT_CATEGORY_TAMAT]) || "Tidak Dinyatakan";
   const grantCategory = currentSource === "Geran Tamat"
@@ -1923,6 +1939,17 @@ function parseGrantRow(row, sheetRowNumber) {
     iprNotAchieved,
     hasUnachievedItem
   };
+}
+
+function columnLetter(index) {
+  let n = Number(index) + 1;
+  let letters = "";
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    letters = String.fromCharCode(65 + rem) + letters;
+    n = Math.floor((n - 1) / 26);
+  }
+  return letters;
 }
 
 function clean(value) {
@@ -2490,7 +2517,7 @@ function renderQuartileMatrix() {
   // GERAN AKTIF:
   // Grant Category WAJIB datang daripada COLUMN AJ sahaja.
   // A=0 ... AJ=35. COLUMN AK=36 ialah PIC dan TIDAK BOLEH digunakan.
-  const AKTIF_GRANT_CATEGORY_INDEX = COL.GRANT_CATEGORY_AKTIF; // AJ = 35
+  const AKTIF_GRANT_CATEGORY_INDEX = activeGrantCategoryIndex;
 
   const getAktifGrantCategory = (d) => {
     if (!d || !Array.isArray(d.rawRow)) return "Tidak Dinyatakan";
