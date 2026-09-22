@@ -1769,12 +1769,17 @@ function parseGrantRow(row, sheetRowNumber) {
 
   const quartile = normalizeQuartile(row[COL.QUARTILE]);
   const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
-  // Grant Category bergantung kepada sumber data:
-  // Geran Aktif = AJ, Geran Tamat = AK
-  const grantCategoryCol = currentSource === "Geran Tamat"
-    ? COL.GRANT_CATEGORY_TAMAT
-    : COL.GRANT_CATEGORY_AKTIF;
-  const grantCategory = clean(row[grantCategoryCol]) || "Tidak Dinyatakan";
+
+  // Grant Category:
+  // GERAN AKTIF = COLUMN AJ
+  // GERAN TAMAT = COLUMN AK
+  // Simpan kedua-dua nilai secara berasingan supaya Ringkasan Quartile
+  // bagi Geran Aktif sentiasa membaca COLUMN AJ secara tepat.
+  const grantCategoryAktif = clean(row[COL.GRANT_CATEGORY_AKTIF]) || "Tidak Dinyatakan";
+  const grantCategoryTamat = clean(row[COL.GRANT_CATEGORY_TAMAT]) || "Tidak Dinyatakan";
+  const grantCategory = currentSource === "Geran Tamat"
+    ? grantCategoryTamat
+    : grantCategoryAktif;
 
   // Item Pencapaian: S, V, Y, AB, AE
   const milestone = clean(row[COL.MILESTONE]);
@@ -1831,6 +1836,8 @@ function parseGrantRow(row, sheetRowNumber) {
     quartile,
     verdict,
     grantCategory,
+    grantCategoryAktif,
+    grantCategoryTamat,
     frStatus,
     gracePeriodRaw: ajRaw,
     milestone,
@@ -2428,7 +2435,11 @@ function renderQuartileMatrix() {
   const tfoot = document.getElementById("quartileMatrixFoot");
   if (!tbody || !tfoot) return;
 
-  const categories = [...new Set(filteredData.map(d => d.grantCategory))].sort(compareGrantCategories);
+  // Untuk GERAN AKTIF, Grant Category MESTI datang daripada COLUMN AJ.
+  // Quartile pula datang daripada COLUMN P.
+  const categories = [...new Set(
+    filteredData.map(d => currentSource === "Geran Aktif" ? d.grantCategoryAktif : d.grantCategory)
+  )].sort(compareGrantCategories);
   if (!categories.length) {
     tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-400 italic">Tiada data</td></tr>`;
     tfoot.innerHTML = "";
@@ -2438,7 +2449,9 @@ function renderQuartileMatrix() {
   let totalQ1 = 0, totalQ2 = 0, totalQ3 = 0, totalQ4 = 0, totalQ5 = 0, totalAll = 0;
 
   tbody.innerHTML = categories.map(cat => {
-    const items = filteredData.filter(d => d.grantCategory === cat);
+    const items = filteredData.filter(d =>
+      (currentSource === "Geran Aktif" ? d.grantCategoryAktif : d.grantCategory) === cat
+    );
     const q1 = items.filter(d => d.quartile === "Q1").length;
     const q2 = items.filter(d => d.quartile === "Q2").length;
     const q3 = items.filter(d => d.quartile === "Q3").length;
