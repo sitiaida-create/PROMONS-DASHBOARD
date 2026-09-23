@@ -704,9 +704,9 @@
                 <i class="fa-solid fa-chart-column mr-2 text-blue-600"></i>
                 Ringkasan Quartile Mengikut Grant Category
               </h3>
-              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category berasaskan Kolum AJ.</p>
+              <p class="text-xs text-gray-500 mt-0.5">Taburan geran dipantau (Q1 – Q5) mengikut Grant Category.</p>
             </div>
-            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile (Kolum AJ)</span>
+            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Monitored Quartile</span>
           </div>
           <div class="table-wrapper">
             <table>
@@ -3217,7 +3217,7 @@ function setGraceChartFilter(mode) {
 
   if (subtitle) {
     if (mode === "in") {
-      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period (Kolum AJ).";
+      subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi geran berstatus Dalam Grace Period.";
     } else if (mode === "all") {
       subtitle.innerText = "Pecahan verdict bagi setiap Grant Category bagi semua geran tamat.";
     } else {
@@ -3358,7 +3358,7 @@ function showGraceVerdictBreakdown(verdictName) {
     modalBadge.className = `badge ${verdictBadgeClass(verdictName)}`;
   }
   if (modalSubtitle) {
-    modalSubtitle.innerText = `Menunjukkan bilangan geran dan senarai maklumat geran bagi status ${verdictName} (${contextLabel} - Kolum AJ).`;
+    modalSubtitle.innerText = `Menunjukkan bilangan geran dan senarai maklumat geran bagi status ${verdictName} (${contextLabel}.`;
   }
 
   const catCounts = {};
