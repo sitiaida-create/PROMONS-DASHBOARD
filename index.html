@@ -2571,9 +2571,9 @@ function renderKPIs() {
     if (kpiMonitored) kpiMonitored.innerText = monitored.toLocaleString();
     if (kpiNotMonitored) kpiNotMonitored.innerText = notMonitored.toLocaleString();
     if (kpiPI) kpiPI.innerText = monitoredPI.toLocaleString();
-    if (kpiPISub) kpiPISub.innerText = `Monitored Quartile (${totalPI.toLocaleString()} keseluruhan PI)`;
+    if (kpiPISub) kpiPISub.innerText = `(${totalPI.toLocaleString()} keseluruhan PI)`;
     if (kpiNonPI) kpiNonPI.innerText = monitoredNonPI.toLocaleString();
-    if (kpiNonPISub) kpiNonPISub.innerText = `Monitored Quartile (${totalNonPI.toLocaleString()} keseluruhan Non PI)`;
+    if (kpiNonPISub) kpiNonPISub.innerText = `(${totalNonPI.toLocaleString()} keseluruhan Non PI)`;
   } else {
     const metrics = computeTamatMetrics(filteredData);
 
