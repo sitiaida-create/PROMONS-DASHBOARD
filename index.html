@@ -2201,10 +2201,13 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     return false;
   }
 
-  // Geran yang berstatus Cemerlang atau Baik telah disahkan mencapai kesemua KPI >= 100%
+  // New Verdict tidak boleh override nilai KPI sebenar untuk Geran Tamat.
+  // Khususnya, Expenditure <100% mesti dikira walaupun verdict = Baik/Cemerlang.
   const v = String(verdict || "").toUpperCase().trim();
-  if (v.includes("CEMERLANG") || v.includes("EXCELLENT") || v.includes("BAIK") || v.includes("GOOD")) {
-    return false;
+  if (!(currentSource === "Geran Tamat" && itemType === "EXPENDITURE")) {
+    if (v.includes("CEMERLANG") || v.includes("EXCELLENT") || v.includes("BAIK") || v.includes("GOOD")) {
+      return false;
+    }
   }
 
   // Pengecualian Q1 Milestone bagi geran aktif
