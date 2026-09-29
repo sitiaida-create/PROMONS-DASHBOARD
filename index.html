@@ -1402,8 +1402,8 @@ const DEFAULT_URLS = {
   "Geran Tamat": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=619542785&single=true&output=csv"
 };
 
-const COL = {
-  PI_STATUS: 1,             // B (Y = PI, Y/N & N = Non PI)
+let currentColMap = {
+  PI_STATUS: 1,             // B
   COST_CENTRE: 2,           // C
   GRANT_TYPE: 3,            // D
   GRANT_TITLE: 4,           // E
@@ -1419,13 +1419,88 @@ const COL = {
   IPR: 30,                  // AE
   VERDICT: 32,              // AG
   GRACE_PERIOD: 35,         // AJ (Geran Tamat)
-  GRANT_CATEGORY_AKTIF: 35, // AJ (Geran Aktif)
-  GRANT_CATEGORY_TAMAT: 36, // AK (Geran Tamat)
+  GRANT_CATEGORY: 35,       // AJ (Geran Aktif) / AK (Geran Tamat)
   FR_STATUS: 39             // AN
 };
 
 let currentSource = "Geran Aktif";
 let activeGrantCategoryIndex = 35;
+
+function resolveColumnIndices(headerRow, source) {
+  const isTamat = source === "Geran Tamat";
+  const map = {
+    PI_STATUS: 1,
+    COST_CENTRE: 2,
+    GRANT_TYPE: 3,
+    GRANT_TITLE: 4,
+    STAFF_NAME: 5,
+    PROJECT_START: 9,
+    PROJECT_END: 10,
+    NEW_END_DATE: 11,
+    QUARTILE: 15,
+    MILESTONE: 18,
+    EXPENDITURE: 21,
+    HCD: 24,
+    PUBLICATION: 27,
+    IPR: 30,
+    VERDICT: 32,
+    GRACE_PERIOD: 35,
+    GRANT_CATEGORY: isTamat ? 36 : 35,
+    FR_STATUS: 39
+  };
+
+  if (!Array.isArray(headerRow) || !headerRow.length) return map;
+
+  const cleanHeaders = headerRow.map(h => clean(h).toUpperCase().replace(/\s+/g, " ").trim());
+
+  const findCol = (patterns, fallback) => {
+    for (const p of patterns) {
+      const idx = cleanHeaders.findIndex(h => h === p);
+      if (idx !== -1) return idx;
+    }
+    for (const p of patterns) {
+      const idx = cleanHeaders.findIndex(h => h.includes(p));
+      if (idx !== -1) return idx;
+    }
+    return fallback;
+  };
+
+  // 1. Kenal pasti kolum peratus perbelanjaan (% Expenditure) secara khusus
+  const pctExpIdx = cleanHeaders.findIndex(h => 
+    (h.includes("%") && (h.includes("EXP") || h.includes("BELANJA") || h.includes("KEWANGAN") || h.includes("FINANC"))) ||
+    h === "% EXPENDITURE" || h === "EXPENDITURE (%)" || h === "% PERBELANJAAN" || h === "PERBELANJAAN (%)" || h === "% BELANJA"
+  );
+  if (pctExpIdx !== -1) {
+    map.EXPENDITURE = pctExpIdx;
+  } else {
+    // Jika tiada tanda '%', cari kolum yang BUKAN Actual/Total/Peruntukan
+    const genExpIdx = cleanHeaders.findIndex(h => 
+      (h.includes("EXPENDITURE") || h.includes("PERBELANJAAN") || h.includes("BELANJA")) &&
+      !h.includes("ACTUAL") && !h.includes("TOTAL") && !h.includes("PERUNTUKAN") && !h.includes("ALLOCATION")
+    );
+    if (genExpIdx !== -1) {
+      map.EXPENDITURE = genExpIdx;
+    } else {
+      map.EXPENDITURE = findCol(["EXPENDITURE", "PERBELANJAAN", "BELANJA"], map.EXPENDITURE);
+    }
+  }
+
+  // 2. Kenal pasti kolum-kolum penting yang lain secara dinamik
+  map.MILESTONE = findCol(["% MILESTONE", "MILESTONE (%)", "MILESTONE", "PENCAPAIAN MILESTONE"], map.MILESTONE);
+  map.HCD = findCol(["% HCD", "HCD (%)", "HCD", "MODAL INSAN"], map.HCD);
+  map.PUBLICATION = findCol(["% PUBLICATION", "PUBLICATION (%)", "PUBLICATION", "PENERBITAN", "% PENERBITAN"], map.PUBLICATION);
+  map.IPR = findCol(["% IPR", "IPR (%)", "IPR", "HARTA INTELEK", "PATENT"], map.IPR);
+  map.VERDICT = findCol(["NEW VERDICT", "VERDICT", "STATUS PRESTASI", "KEPUTUSAN"], map.VERDICT);
+  map.GRANT_CATEGORY = findCol(["GRANT CATEGORY", "KATEGORI GERAN", "CATEGORY"], map.GRANT_CATEGORY);
+  map.FR_STATUS = findCol(["FR STATUS", "STATUS FR", "FINAL REPORT STATUS", "FINAL REPORT"], map.FR_STATUS);
+  map.GRACE_PERIOD = findCol(["GRACE PERIOD", "TEMPOH GRACE PERIOD", "GRACE"], map.GRACE_PERIOD);
+  map.COST_CENTRE = findCol(["COST CENTRE NO", "COST CENTRE", "NO PUSAT KOS", "VOT"], map.COST_CENTRE);
+  map.GRANT_TYPE = findCol(["GRANT TYPE", "JENIS GERAN"], map.GRANT_TYPE);
+  map.GRANT_TITLE = findCol(["GRANT TITLE", "TAJUK GERAN", "TITLE"], map.GRANT_TITLE);
+  map.STAFF_NAME = findCol(["STAFF NAME", "NAMA STAF", "NAMA PENYELIDIK", "PROJECT LEADER", "LEADER"], map.STAFF_NAME);
+
+  return map;
+}
 
 let chartJsPromise = null;
 function ensureChartJs() {
@@ -1740,6 +1815,11 @@ function updateSourceUI() {
   if (kpiSubMilestone) kpiSubMilestone.innerText = isTamat ? "< 100% (Semua Geran)" : "< 100% (Semua Quartile)";
   if (kpiSubExpenditure) kpiSubExpenditure.innerText = isTamat ? "< 100% (Semua Geran)" : "< 100% (Semua Quartile)";
 
+  const kpiSubPub = document.getElementById("kpiSubPub");
+  const kpiSubIPR = document.getElementById("kpiSubIPR");
+  if (kpiSubPub) kpiSubPub.innerText = isTamat ? "< 100% (Semua Geran)" : "< 100% (Q4 & Q5)";
+  if (kpiSubIPR) kpiSubIPR.innerText = isTamat ? "< 100% (Semua Geran)" : "< 100% (Q4 & Q5)";
+
   const unachievedQuartileHeader = document.getElementById("unachievedQuartileHeader");
   if (unachievedQuartileHeader) unachievedQuartileHeader.classList.toggle("hidden", isTamat);
 
@@ -1786,8 +1866,15 @@ function updateSourceUI() {
   const verdictSummarySubtitle = document.getElementById("verdictSummarySubtitle");
   if (verdictSummarySubtitle) {
     verdictSummarySubtitle.innerText = isTamat
-      ? "Taburan semua geran tamat berasaskan Verdict."
+      ? "Taburan geran tamat berasaskan Verdict (FR Status selain Not Completed, Draft & Terminated)."
       : "Taburan geran berasaskan Verdict: PW, OS, BS, NCM.";
+  }
+
+  const verdictMonitoredBadge = document.getElementById("verdictMonitoredBadge");
+  if (verdictMonitoredBadge) {
+    verdictMonitoredBadge.innerText = isTamat
+      ? "FR Status Selain Not Completed, Draft & Terminated"
+      : "Verdict";
   }
 
   const verdictNoticeText = document.getElementById("verdictNoticeText");
@@ -1862,17 +1949,11 @@ async function fetchCurrentSource() {
       rows = [new Array(42).fill("Header"), ...sampleRows];
     }
 
-    activeGrantCategoryIndex = 35;
-    if (Array.isArray(rows[0])) {
-      const headerIndex = rows[0].findIndex(h => {
-        const normalized = clean(h).toUpperCase().replace(/\s+/g, " ").trim();
-        return normalized === "GRANT CATEGORY";
-      });
-      if (headerIndex >= 0) activeGrantCategoryIndex = headerIndex;
-    }
+    currentColMap = resolveColumnIndices(rows[0], currentSource);
+    activeGrantCategoryIndex = currentColMap.GRANT_CATEGORY;
 
     const dataRows = rows.slice(1).filter(row => 
-      Array.isArray(row) && clean(row[COL.COST_CENTRE]) !== ""
+      Array.isArray(row) && clean(row[currentColMap.COST_CENTRE]) !== ""
     );
 
     grantsData = dataRows.map((row, index) => parseGrantRow(row, index + 2));
@@ -1890,18 +1971,18 @@ async function fetchCurrentSource() {
 }
 
 function parseGrantRow(row, sheetRowNumber) {
-  const piRaw = clean(row[COL.PI_STATUS]).toUpperCase();
+  const piRaw = clean(row[currentColMap.PI_STATUS]).toUpperCase();
   const isPI = piRaw === "Y";
 
-  const costCentre = clean(row[COL.COST_CENTRE]);
-  const grantType = clean(row[COL.GRANT_TYPE]) || "Tidak Dinyatakan";
-  const grantTitle = clean(row[COL.GRANT_TITLE]) || "Tiada Tajuk";
-  const staffName = clean(row[COL.STAFF_NAME]) || "Tidak Dinyatakan";
+  const costCentre = clean(row[currentColMap.COST_CENTRE]);
+  const grantType = clean(row[currentColMap.GRANT_TYPE]) || "Tidak Dinyatakan";
+  const grantTitle = clean(row[currentColMap.GRANT_TITLE]) || "Tiada Tajuk";
+  const staffName = clean(row[currentColMap.STAFF_NAME]) || "Tidak Dinyatakan";
 
-  const jRaw = clean(row[COL.PROJECT_START]);
-  const kRaw = clean(row[COL.PROJECT_END]);
-  const lRaw = clean(row[COL.NEW_END_DATE]);
-  const ajRaw = clean(row[COL.GRACE_PERIOD]);
+  const jRaw = clean(row[currentColMap.PROJECT_START]);
+  const kRaw = clean(row[currentColMap.PROJECT_END]);
+  const lRaw = clean(row[currentColMap.NEW_END_DATE]);
+  const ajRaw = clean(row[currentColMap.GRACE_PERIOD]);
 
   const startDate = parseDateValue(jRaw);
   const kDate = parseDateValue(kRaw);
@@ -1918,22 +1999,29 @@ function parseGrantRow(row, sheetRowNumber) {
   const isEnded2026 = kYear === "2026" || /\b2026\b/.test(kRaw);
   const isEnded2026NoExt = (kYear === "2026" || /\b2026\b/.test(kRaw)) && isColLBlank;
 
-  const quartile = normalizeQuartile(row[COL.QUARTILE]);
-  const verdict = clean(row[COL.VERDICT]) || "Tidak Dinyatakan";
+  const quartile = normalizeQuartile(row[currentColMap.QUARTILE]);
+  const verdict = clean(row[currentColMap.VERDICT]) || "Tidak Dinyatakan";
 
-  const grantCategoryAktif = currentSource === "Geran Aktif"
-    ? normalizeGrantCategory(row[activeGrantCategoryIndex])
-    : "Tidak Dinyatakan";
-  const grantCategoryTamat = normalizeGrantCategory(row[COL.GRANT_CATEGORY_TAMAT]);
-  const grantCategory = currentSource === "Geran Tamat"
-    ? grantCategoryTamat
-    : grantCategoryAktif;
+  const grantCategory = normalizeGrantCategory(row[currentColMap.GRANT_CATEGORY]);
 
-  const milestone = clean(row[COL.MILESTONE]);
-  const expenditure = clean(row[COL.EXPENDITURE]);
-  const hcd = clean(row[COL.HCD]);
-  const publication = clean(row[COL.PUBLICATION]);
-  const ipr = clean(row[COL.IPR]);
+  const milestone = clean(row[currentColMap.MILESTONE]);
+  
+  // Ekstrak Expenditure dengan sokongan kolum peratusan yang tepat
+  let expenditure = clean(row[currentColMap.EXPENDITURE]);
+  if (!expenditure && currentColMap.EXPENDITURE > 0) {
+    // Semakan fallback jika kolum bersebelahan mengandungi peratusan
+    const prevVal = clean(row[currentColMap.EXPENDITURE - 1]);
+    const nextVal = clean(row[currentColMap.EXPENDITURE + 1]);
+    if (prevVal && (prevVal.includes("%") || /^\d+(?:\.\d+)?$/.test(prevVal))) {
+      expenditure = prevVal;
+    } else if (nextVal && (nextVal.includes("%") || /^\d+(?:\.\d+)?$/.test(nextVal))) {
+      expenditure = nextVal;
+    }
+  }
+
+  const hcd = clean(row[currentColMap.HCD]);
+  const publication = clean(row[currentColMap.PUBLICATION]);
+  const ipr = clean(row[currentColMap.IPR]);
 
   const milestoneApplicable = isItemApplicable(quartile, "MILESTONE");
   const expenditureApplicable = isItemApplicable(quartile, "EXPENDITURE");
@@ -1951,7 +2039,7 @@ function parseGrantRow(row, sheetRowNumber) {
 
   let frStatus = "";
   if (currentSource === "Geran Tamat") {
-    frStatus = clean(row[COL.FR_STATUS]) || "Tidak Dinyatakan";
+    frStatus = clean(row[currentColMap.FR_STATUS]) || "Tidak Dinyatakan";
   }
 
   return {
@@ -1983,8 +2071,6 @@ function parseGrantRow(row, sheetRowNumber) {
     quartile,
     verdict,
     grantCategory,
-    grantCategoryAktif,
-    grantCategoryTamat,
     frStatus,
     gracePeriodRaw: ajRaw,
     milestone,
@@ -2091,9 +2177,15 @@ function isItemApplicable(quartile, itemType) {
 
 function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
   if (!rawVal) return false;
-  const val = String(rawVal).trim().toUpperCase();
-  if (val === "" || val === "-" || val === "--" || val === "N/A" || val === "NA" || val === "TIADA" || val === "NONE") return false;
+  let val = String(rawVal).trim().toUpperCase();
+  if (val === "" || val === "-" || val === "--" || val === "–" || val === "—" || val === "N/A" || val === "NA" || val === "#N/A" || val === "TIADA" || val === "NONE") return false;
 
+  // Abaikan formula error output dalam spreadsheet
+  if (val.includes("#DIV/0!") || val.includes("#VALUE!") || val.includes("#REF!") || val.includes("#NUM!")) {
+    return false;
+  }
+
+  // Petunjuk bukan pemantauan atau tiada sasaran
   if (val === "-1" || val === "-1%" || val === "-1.0" || val === "-1.00" || /^-0*(?:\.0+)?$/.test(val) || /^-\d+/.test(val)) {
     return false;
   }
@@ -2109,15 +2201,22 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     return false;
   }
 
+  // Geran yang berstatus Cemerlang atau Baik telah disahkan mencapai kesemua KPI >= 100%
+  const v = String(verdict || "").toUpperCase().trim();
+  if (v.includes("CEMERLANG") || v.includes("EXCELLENT") || v.includes("BAIK") || v.includes("GOOD")) {
+    return false;
+  }
+
+  // Pengecualian Q1 Milestone bagi geran aktif
   if (quartile === "Q1" && itemType === "MILESTONE") {
-    const v = String(verdict || "").toUpperCase();
-    if (v.includes("PW") || v.includes("OS") || v.includes("PROGRESSING WELL") || v.includes("ON SCHEDULE") || v.includes("CEMERLANG") || v.includes("MEMUASKAN") || v.includes("BAIK")) {
+    if (v.includes("PW") || v.includes("OS") || v.includes("PROGRESSING WELL") || v.includes("ON SCHEDULE") || v.includes("MEMUASKAN") || v.includes("SATISFACTORY")) {
       if (val === "0" || val === "0%" || val === "0.0%" || val === "0/1" || val === "BELUM") {
         return false;
       }
     }
   }
 
+  // Kata kunci kejayaan mutlak
   if (
     val === "CAPAI" ||
     val === "ACHIEVED" ||
@@ -2128,36 +2227,61 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     val === "Y" ||
     val === "PW" ||
     val === "OS" ||
-    val === "BAIK" ||
     val === "PROGRESSING WELL" ||
     val === "ON SCHEDULE" ||
     val === "100%" ||
     val === "100" ||
-    val === "100.0%"
+    val === "100.0%" ||
+    val === "100.00%" ||
+    val.startsWith(">100") ||
+    val.startsWith(">=100") ||
+    val.startsWith("> 100") ||
+    val.startsWith(">= 100") ||
+    val === "100%+"
   ) {
     return false;
   }
 
-  const pctMatch = val.match(/^(\d+(?:\.\d+)?)\s*%$/);
-  if (pctMatch) {
-    const num = parseFloat(pctMatch[1]);
-    return num < 100;
+  // Format perpuluhan '1' atau '1.0' mewakili 100% dalam eksport format peratus spreadsheet
+  if (val === "1" || val === "1.0" || val === "1.00" || val === "1.000") {
+    return false;
   }
 
-  const fracMatch = val.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+  // Bersihkan sebutan mata wang RM dan tanda koma (cth: RM 45,000 / RM 50,000)
+  const cleanVal = val.replace(/RM/g, "").replace(/,/g, "").trim();
+
+  // Format pecahan (cth: 45000 / 50000 atau 1/2)
+  const fracMatch = cleanVal.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
   if (fracMatch) {
     const num = parseFloat(fracMatch[1]);
     const denom = parseFloat(fracMatch[2]);
     if (denom > 0) {
-      return (num / denom) < 1.0;
+      return (num / denom) < 0.9999;
     }
   }
 
-  if (/^\d+(?:\.\d+)?$/.test(val)) {
-    const num = parseFloat(val);
-    return num < 100;
+  // Format peratusan biasa (cth: 85% atau 99.4%)
+  const pctMatch = cleanVal.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  if (pctMatch) {
+    const num = parseFloat(pctMatch[1]);
+    return num < 99.99;
   }
 
+  // Format angka tulen (cth: 85 sebagai peratus, atau 0.85 sebagai perpuluhan)
+  if (/^\d+(?:\.\d+)?$/.test(cleanVal)) {
+    const num = parseFloat(cleanVal);
+    if (num > 1.0) {
+      return num < 99.99;
+    } else if (num > 0 && num < 1.0) {
+      return true; // 0.85 = 85% (< 100%)
+    } else if (num === 1.0) {
+      return false; // 1.0 = 100%
+    } else if (num === 0) {
+      return true;
+    }
+  }
+
+  // Kata kunci ketidaktercapaian
   if (
     val.includes("TIDAK") ||
     val.includes("BELUM") ||
@@ -2668,8 +2792,13 @@ function renderVerdictMatrix() {
   const tfoot = document.getElementById("verdictMatrixFoot");
   if (!tbody || !tfoot) return;
 
-  const targetData = filteredData;
   const isTamat = currentSource === "Geran Tamat";
+  const targetData = isTamat
+    ? filteredData.filter(d => {
+        const fr = clean(d.frStatus).toUpperCase();
+        return !fr.includes("NOT COMPLETED") && !fr.includes("DRAFT") && !fr.includes("TERMINATED");
+      })
+    : filteredData;
 
   const getSummaryGrantCategory = (d) => clean(d.grantCategory) || "Tidak Dinyatakan";
   const categories = [...new Set(targetData.map(getSummaryGrantCategory))].sort(compareGrantCategories);
