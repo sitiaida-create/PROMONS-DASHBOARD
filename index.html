@@ -479,6 +479,10 @@
       <i class="fa-solid fa-folder-closed mr-3 text-base"></i>
       <span>Geran Tamat</span>
     </button>
+    <button id="sourceRumusanBtn" class="source-btn" onclick="showHistorySummary()">
+      <i class="fa-solid fa-chart-line mr-3 text-base"></i>
+      <span>Rumusan</span>
+    </button>
   </div>
 
   <div class="p-4 border-t border-slate-200">
@@ -1279,6 +1283,55 @@
         </div>
       </section>
     </div>
+
+    <!-- RUMUSAN VERDICT HISTORY -->
+    <section id="historySummaryTab" class="hidden space-y-5">
+      <div class="card p-5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 class="font-extrabold text-slate-900 text-lg">
+              <i class="fa-solid fa-chart-line mr-2 text-slate-700"></i>
+              Rumusan Trend Verdict
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">
+              Trend bulanan berdasarkan data <strong>verdict_history</strong>. Paksi-Y = jumlah geran, Paksi-X = bulan.
+            </p>
+          </div>
+          <span id="historyLastUpdated" class="badge badge-gray">Memuatkan data...</span>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="mb-4">
+          <h3 class="font-bold text-slate-900">Geran Aktif</h3>
+          <p class="text-xs text-slate-500 mt-1">Trend <strong>Behind Schedule</strong> dan <strong>Need Close Monitoring</strong>.</p>
+        </div>
+        <div class="chart-container" style="height:380px;">
+          <canvas id="chartHistoryAktif"></canvas>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="mb-4">
+          <h3 class="font-bold text-slate-900">Geran Tamat</h3>
+          <p class="text-xs text-slate-500 mt-1">Trend <strong>Cemerlang</strong>, <strong>Baik</strong> dan <strong>Memuaskan</strong>.</p>
+        </div>
+        <div class="chart-container" style="height:380px;">
+          <canvas id="chartHistoryTamat"></canvas>
+        </div>
+      </div>
+
+      <div id="historySummaryError" class="hidden card p-5 border-red-200 bg-red-50">
+        <div class="flex items-start gap-3 text-red-800">
+          <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+          <div>
+            <div class="font-bold">Data verdict_history tidak dapat dimuatkan.</div>
+            <div id="historySummaryErrorText" class="text-xs mt-1"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
@@ -1401,6 +1454,7 @@ const DEFAULT_URLS = {
   "Geran Aktif": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=892877893&single=true&output=csv",
   "Geran Tamat": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=619542785&single=true&output=csv"
 };
+const VERDICT_HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=760637815&single=true&output=csv";
 
 let currentColMap = {
   PI_STATUS: 1,             // B
@@ -1537,6 +1591,9 @@ const UNACHIEVED_ITEMS_PER_PAGE = 15;
 
 let verdictDisplayMode = "quartile"; // 'quartile' or 'category'
 let graceChartFilter = "all";        // 'all', 'in', or 'out'
+let historySummaryMode = false;
+let verdictHistoryRows = [];
+let historyCharts = { aktif: null, tamat: null };
 
 let currentModalVerdict = "";
 let currentModalFilteredGrants = [];
@@ -1714,7 +1771,21 @@ async function initDashboard() {
 }
 
 async function selectSource(source) {
-  if (source === currentSource) return;
+  if (source !== "Geran Aktif" && source !== "Geran Tamat") return;
+  historySummaryMode = false;
+  const historyTab = document.getElementById("historySummaryTab");
+  if (historyTab) historyTab.classList.add("hidden");
+  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("hidden");
+  });
+  const filterSection = document.querySelector("section.card.p-5.mb-5");
+  if (filterSection) filterSection.classList.remove("hidden");
+  if (source === currentSource) {
+    updateSourceButtons();
+    updateSourceUI();
+    return;
+  }
   currentSource = source;
   currentPage = 1;
   warningCurrentPage = 1;
@@ -1730,8 +1801,10 @@ async function selectSource(source) {
 function updateSourceButtons() {
   const aktifBtn = document.getElementById("sourceAktifBtn");
   const tamatBtn = document.getElementById("sourceTamatBtn");
-  if (aktifBtn) aktifBtn.classList.toggle("active", currentSource === "Geran Aktif");
-  if (tamatBtn) tamatBtn.classList.toggle("active", currentSource === "Geran Tamat");
+  const rumusanBtn = document.getElementById("sourceRumusanBtn");
+  if (aktifBtn) aktifBtn.classList.toggle("active", !historySummaryMode && currentSource === "Geran Aktif");
+  if (tamatBtn) tamatBtn.classList.toggle("active", !historySummaryMode && currentSource === "Geran Tamat");
+  if (rumusanBtn) rumusanBtn.classList.toggle("active", historySummaryMode);
 }
 
 function updateSourceUI() {
@@ -2577,6 +2650,10 @@ function resetFilters(render = true) {
 }
 
 function renderAll() {
+  if (historySummaryMode) {
+    renderVerdictHistoryCharts();
+    return;
+  }
   renderKPIs();
   renderQuartileMatrix();
   renderVerdictMatrix();
@@ -2589,6 +2666,17 @@ function renderAll() {
 }
 
 function switchTab(tabKey) {
+  historySummaryMode = false;
+  const historyTab = document.getElementById("historySummaryTab");
+  if (historyTab) historyTab.classList.add("hidden");
+  const filterSection = document.querySelector("section.card.p-5.mb-5");
+  if (filterSection) filterSection.classList.remove("hidden");
+  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("hidden");
+  });
+  updateSourceButtons();
+
   const tabs = {
     summary: { btn: "tabSummary", content: "summaryTab" },
     visual: { btn: "tabVisual", content: "visualTab" },
@@ -2609,6 +2697,264 @@ function switchTab(tabKey) {
       updateCharts();
     }, 50);
   }
+}
+
+
+async function fetchVerdictHistory() {
+  const errorPanel = document.getElementById("historySummaryError");
+  const errorText = document.getElementById("historySummaryErrorText");
+  const updated = document.getElementById("historyLastUpdated");
+  if (errorPanel) errorPanel.classList.add("hidden");
+
+  try {
+    const cacheBust = VERDICT_HISTORY_URL + "&_=" + Date.now();
+    let csvString = "";
+
+    try {
+      const res = await fetch(cacheBust, { method: "GET", cache: "no-store" });
+      if (res.ok) csvString = await res.text();
+    } catch (directErr) {
+      console.warn("Direct fetch verdict_history gagal, mencuba fallback proxy...", directErr);
+    }
+
+    if (!csvString || csvString.trim().length < 20) {
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(cacheBust)}`;
+        const pRes = await fetch(proxyUrl, { cache: "no-store" });
+        if (pRes.ok) csvString = await pRes.text();
+      } catch (proxyErr) {
+        console.warn("Proxy verdict_history gagal.", proxyErr);
+      }
+    }
+
+    if (!csvString || csvString.trim().length < 20) {
+      throw new Error("CSV verdict_history kosong atau tidak boleh dicapai.");
+    }
+
+    const parsed = (typeof Papa !== "undefined" && Papa && typeof Papa.parse === "function")
+      ? Papa.parse(csvString, { header: true, skipEmptyLines: true })
+      : { data: [] };
+
+    const rows = (parsed.data || []).filter(row => Object.values(row).some(v => clean(v) !== ""));
+    if (!rows.length) throw new Error("Tiada rekod ditemui dalam verdict_history.");
+
+    verdictHistoryRows = rows;
+    renderVerdictHistoryCharts();
+
+    if (updated) {
+      updated.innerText = `Dikemas kini: ${new Date().toLocaleString("ms-MY", { dateStyle: "medium", timeStyle: "short" })}`;
+      updated.className = "badge badge-green";
+    }
+  } catch (err) {
+    console.error(err);
+    if (updated) {
+      updated.innerText = "Data gagal dimuatkan";
+      updated.className = "badge badge-red";
+    }
+    if (errorText) errorText.innerText = err.message || "Ralat tidak diketahui.";
+    if (errorPanel) errorPanel.classList.remove("hidden");
+  }
+}
+
+function historyFindHeader(headers, aliases) {
+  const normalized = headers.map(h => clean(h).toUpperCase().replace(/[\s_\-\/]+/g, " ").trim());
+  for (const alias of aliases) {
+    const a = alias.toUpperCase().replace(/[\s_\-\/]+/g, " ").trim();
+    const exact = normalized.indexOf(a);
+    if (exact >= 0) return headers[exact];
+  }
+  for (let i = 0; i < normalized.length; i++) {
+    if (aliases.some(alias => {
+      const a = alias.toUpperCase().replace(/[\s_\-\/]+/g, " ").trim();
+      return normalized[i].includes(a) || a.includes(normalized[i]);
+    })) return headers[i];
+  }
+  return null;
+}
+
+function historyNormalizeSource(value) {
+  const s = clean(value).toUpperCase();
+  if (s.includes("AKTIF") || s === "ACTIVE") return "Geran Aktif";
+  if (s.includes("TAMAT") || s === "ENDED" || s === "CLOSED") return "Geran Tamat";
+  return "";
+}
+
+function historyNormalizeVerdict(value) {
+  const s = clean(value).toUpperCase().replace(/\s+/g, " ");
+  if (s.includes("BEHIND SCHEDULE") || s === "BS") return "Behind Schedule";
+  if (s.includes("NEED CLOSE MONITORING") || s === "NCM") return "Need Close Monitoring";
+  if (s.includes("CEMERLANG") || s.includes("EXCELLENT")) return "Cemerlang";
+  if (s === "BAIK" || s.includes("GOOD")) return "Baik";
+  if (s.includes("MEMUASKAN") || s.includes("SATISFACTORY")) return "Memuaskan";
+  return "";
+}
+
+function historyParseMonth(value) {
+  const raw = clean(value);
+  if (!raw) return null;
+
+  let m = raw.match(/^(\d{4})[-\/]([01]?\d)(?:[-\/]([0-3]?\d))?/);
+  if (m) {
+    const d = Number(m[3] || 1);
+    const dt = new Date(Number(m[1]), Number(m[2]) - 1, d);
+    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
+  }
+
+  m = raw.match(/^(\d{1,2})[-\/]([01]?\d)[-\/](\d{4})/);
+  if (m) {
+    const dt = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
+  }
+
+  const dt = new Date(raw);
+  if (!Number.isNaN(dt.getTime())) {
+    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
+  }
+
+  const monthMap = {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11,JANUARI:0,FEBRUARI:1,MAC:2,APRIL:3,MEI:4,JUN:5,JULAI:6,OGOS:7,SEPTEMBER:8,OKTOBER:9,NOVEMBER:10,DISEMBER:11};
+  const mm = raw.toUpperCase().match(/(JANUARI|FEBRUARI|MAC|APRIL|MEI|JUN|JULAI|OGOS|SEPTEMBER|OKTOBER|NOVEMBER|DISEMBER|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[^0-9]*(20\d{2})/);
+  if (mm) {
+    const dt2 = new Date(Number(mm[2]), monthMap[mm[1]], 1);
+    return { key: `${dt2.getFullYear()}-${String(dt2.getMonth()+1).padStart(2,"0")}`, label: dt2.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
+  }
+  return null;
+}
+
+function historyNumeric(value) {
+  const n = Number(String(value ?? "").replace(/,/g, "").replace(/%/g, "").trim());
+  return Number.isFinite(n) ? n : 0;
+}
+
+function historyBuildSeries() {
+  const rows = verdictHistoryRows;
+  if (!rows.length) return { labels: [], aktif: { bs: [], ncm: [] }, tamat: { cemerlang: [], baik: [], memuaskan: [] } };
+
+  const headers = Object.keys(rows[0] || {});
+  const dateHeader = historyFindHeader(headers, ["Bulan", "Month", "Tarikh", "Date", "Reporting Month", "Snapshot Month", "Snapshot Date", "As Of", "As At"]);
+  const sourceHeader = historyFindHeader(headers, ["Sumber", "Source", "Status Geran", "Grant Status", "Jenis Geran"]);
+  const verdictHeader = historyFindHeader(headers, ["Verdict", "New Verdict", "Verdict Status"]);
+  const idHeader = historyFindHeader(headers, ["Cost Centre No", "Cost Centre", "Cost Centre Number", "Kod Projek", "Project Code", "Grant ID", "Grant No", "Project ID", "ID"]);
+  const countHeader = historyFindHeader(headers, ["Jumlah", "Count", "Jumlah Geran", "Total Grants", "Bilangan"]);
+
+  const buckets = {};
+  const add = (month, source, verdict, amount) => {
+    if (!month || !source || !verdict) return;
+    if (!buckets[month.key]) buckets[month.key] = { label: month.label, aktif: { bs:0, ncm:0 }, tamat:{ cemerlang:0, baik:0, memuaskan:0 } };
+    if (source === "Geran Aktif") {
+      if (verdict === "Behind Schedule") buckets[month.key].aktif.bs += amount;
+      if (verdict === "Need Close Monitoring") buckets[month.key].aktif.ncm += amount;
+    } else if (source === "Geran Tamat") {
+      if (verdict === "Cemerlang") buckets[month.key].tamat.cemerlang += amount;
+      if (verdict === "Baik") buckets[month.key].tamat.baik += amount;
+      if (verdict === "Memuaskan") buckets[month.key].tamat.memuaskan += amount;
+    }
+  };
+
+  if (sourceHeader && verdictHeader && dateHeader) {
+    const seen = new Set();
+    rows.forEach((row, idx) => {
+      const month = historyParseMonth(row[dateHeader]);
+      const source = historyNormalizeSource(row[sourceHeader]);
+      const verdict = historyNormalizeVerdict(row[verdictHeader]);
+      if (!month || !source || !verdict) return;
+
+      let amount = 1;
+      if (countHeader && !idHeader) {
+        const n = historyNumeric(row[countHeader]);
+        amount = n > 0 ? n : 0;
+      } else if (idHeader) {
+        const id = clean(row[idHeader]);
+        const uniqueKey = `${month.key}|${source}|${verdict}|${id || idx}`;
+        if (seen.has(uniqueKey)) return;
+        seen.add(uniqueKey);
+      }
+      add(month, source, verdict, amount);
+    });
+  } else {
+    const activeBSHeader = historyFindHeader(headers, ["Geran Aktif BS", "Aktif BS", "Behind Schedule"]);
+    const activeNCMHeader = historyFindHeader(headers, ["Geran Aktif NCM", "Aktif NCM", "Need Close Monitoring"]);
+    const tamatCHeader = historyFindHeader(headers, ["Geran Tamat Cemerlang", "Tamat Cemerlang", "Cemerlang"]);
+    const tamatBHeader = historyFindHeader(headers, ["Geran Tamat Baik", "Tamat Baik", "Baik"]);
+    const tamatMHeader = historyFindHeader(headers, ["Geran Tamat Memuaskan", "Tamat Memuaskan", "Memuaskan"]);
+    if (!dateHeader) throw new Error("Kolum bulan/tarikh tidak ditemui dalam verdict_history.");
+    rows.forEach(row => {
+      const month = historyParseMonth(row[dateHeader]);
+      if (!month) return;
+      add(month, "Geran Aktif", "Behind Schedule", historyNumeric(row[activeBSHeader]));
+      add(month, "Geran Aktif", "Need Close Monitoring", historyNumeric(row[activeNCMHeader]));
+      add(month, "Geran Tamat", "Cemerlang", historyNumeric(row[tamatCHeader]));
+      add(month, "Geran Tamat", "Baik", historyNumeric(row[tamatBHeader]));
+      add(month, "Geran Tamat", "Memuaskan", historyNumeric(row[tamatMHeader]));
+    });
+  }
+
+  const keys = Object.keys(buckets).sort();
+  return {
+    labels: keys.map(k => buckets[k].label),
+    aktif: { bs: keys.map(k => buckets[k].aktif.bs), ncm: keys.map(k => buckets[k].aktif.ncm) },
+    tamat: {
+      cemerlang: keys.map(k => buckets[k].tamat.cemerlang),
+      baik: keys.map(k => buckets[k].tamat.baik),
+      memuaskan: keys.map(k => buckets[k].tamat.memuaskan)
+    }
+  };
+}
+
+function renderHistoryLineChart(chartKey, canvasId, labels, datasets) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === "undefined") return;
+  if (historyCharts[chartKey]) historyCharts[chartKey].destroy();
+
+  historyCharts[chartKey] = new Chart(canvas, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      elements: { line: { tension: 0.3, borderWidth: 3 }, point: { radius: 4, hoverRadius: 6 } },
+      scales: {
+        x: { title: { display: true, text: "Bulan" }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, callback: value => Number(value).toLocaleString() }, title: { display: true, text: "Jumlah Geran" } }
+      },
+      plugins: {
+        legend: { display: true, position: "top" },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toLocaleString()} geran` } }
+      }
+    }
+  });
+}
+
+function renderVerdictHistoryCharts() {
+  if (!historySummaryMode || typeof Chart === "undefined") return;
+  const series = historyBuildSeries();
+  renderHistoryLineChart("aktif", "chartHistoryAktif", series.labels, [
+    { label: "Behind Schedule", data: series.aktif.bs, borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.10)", fill: false },
+    { label: "Need Close Monitoring", data: series.aktif.ncm, borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,0.10)", fill: false }
+  ]);
+  renderHistoryLineChart("tamat", "chartHistoryTamat", series.labels, [
+    { label: "Cemerlang", data: series.tamat.cemerlang, borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.10)", fill: false },
+    { label: "Baik", data: series.tamat.baik, borderColor: "#06b6d4", backgroundColor: "rgba(6,182,212,0.10)", fill: false },
+    { label: "Memuaskan", data: series.tamat.memuaskan, borderColor: "#3b82f6", backgroundColor: "rgba(59,130,246,0.10)", fill: false }
+  ]);
+}
+
+async function showHistorySummary() {
+  historySummaryMode = true;
+  closeMobileSidebar();
+  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
+  const filterSection = document.querySelector("section.card.p-5.mb-5");
+  if (filterSection) filterSection.classList.add("hidden");
+  const historyTab = document.getElementById("historySummaryTab");
+  if (historyTab) historyTab.classList.remove("hidden");
+  const sourceBadge = document.getElementById("sourceBadge");
+  if (sourceBadge) sourceBadge.innerText = "Rumusan";
+  updateSourceButtons();
+  if (!verdictHistoryRows.length) await fetchVerdictHistory();
+  else renderVerdictHistoryCharts();
 }
 
 function setVerdictDisplayMode(mode) {
@@ -3988,8 +4334,9 @@ function openConfigModal() {
 function reloadData() {
   const icon = document.getElementById("refreshIcon");
   if (icon) icon.classList.add("fa-spin");
-  fetchCurrentSource().then(() => {
-    showToast("Data Google Sheets berjaya dikemaskini.");
+  const task = historySummaryMode ? fetchVerdictHistory() : fetchCurrentSource();
+  task.then(() => {
+    showToast(historySummaryMode ? "Data verdict_history berjaya dikemaskini." : "Data Google Sheets berjaya dikemaskini.");
   }).finally(() => {
     setTimeout(() => {
       if (icon) icon.classList.remove("fa-spin");
@@ -4076,6 +4423,7 @@ function escapeAttr(str) {
 
 // Expose global functions to window scope
 window.selectSource = selectSource;
+window.showHistorySummary = showHistorySummary;
 window.switchTab = switchTab;
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
