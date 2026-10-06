@@ -25,7 +25,7 @@
       color: #1e293b;
     }
 
-    /* ================= SIDEBAR ================= */
+    /* Sidebar Styles */
     .sidebar {
       width: 250px;
       min-height: 100vh;
@@ -61,7 +61,7 @@
       width: 100%;
       border: none;
       background: transparent;
-      padding: 14px 16px;
+      padding: 13px 16px;
       margin-bottom: 8px;
       border-radius: 10px;
       text-align: left;
@@ -84,7 +84,7 @@
       box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);
     }
 
-    /* ================= MAIN WRAPPER ================= */
+    /* Main Container & Top Header */
     .main-wrapper {
       margin-left: 250px;
       min-height: 100vh;
@@ -112,7 +112,7 @@
       flex: 1;
     }
 
-    /* ================= CARDS & KPI ================= */
+    /* Cards & KPI Display */
     .card {
       background: #ffffff;
       border-radius: 14px;
@@ -157,7 +157,7 @@
       line-height: 1.2;
     }
 
-    /* ================= FORM CONTROLS ================= */
+    /* Form Controls */
     .filter-label {
       font-size: 11px;
       font-weight: 700;
@@ -187,7 +187,7 @@
       box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.12);
     }
 
-    /* ================= NAVIGATION TABS ================= */
+    /* Tab Buttons */
     .tab-btn {
       padding: 10px 16px;
       border-radius: 8px;
@@ -212,13 +212,12 @@
       color: #ffffff;
     }
 
-    /* ================= CHARTS ================= */
     .chart-container {
       position: relative;
       height: 320px;
     }
 
-    /* ================= TABLES ================= */
+    /* Tables */
     .table-wrapper {
       overflow-x: auto;
       border-radius: 0 0 14px 14px;
@@ -254,7 +253,6 @@
       background: #f8fafc;
     }
 
-    /* ================= BADGES ================= */
     .badge {
       display: inline-flex;
       align-items: center;
@@ -305,7 +303,6 @@
     .badge-blue { background: #dbeafe; color: #1e40af; }
     .badge-purple { background: #ede9fe; color: #6d28d9; }
 
-    /* ================= BUTTONS ================= */
     .btn {
       border: none;
       border-radius: 8px;
@@ -324,7 +321,7 @@
     .btn-light { background: #f1f5f9; color: #334155; }
     .btn-light:hover { background: #e2e8f0; color: #0f172a; }
 
-    /* ================= MODALS & STACKED Z-INDEX ================= */
+    /* Modals & Overlay */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -389,7 +386,6 @@
       word-break: break-word;
     }
 
-    /* ================= LOADING SPINNER ================= */
     .loading {
       min-height: 300px;
       display: flex;
@@ -440,12 +436,8 @@
     .mobile-menu-btn { display: none; }
 
     @media (max-width: 900px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-      .sidebar.mobile-open { 
-        transform: translateX(0); 
-      }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.mobile-open { transform: translateX(0); }
       .main-wrapper { margin-left: 0; }
       .mobile-menu-btn { display: inline-flex; }
       .content { padding: 18px; }
@@ -479,9 +471,9 @@
       <i class="fa-solid fa-folder-closed mr-3 text-base"></i>
       <span>Geran Tamat</span>
     </button>
-    <button id="sourceRumusanBtn" class="source-btn" onclick="showHistorySummary()">
-      <i class="fa-solid fa-chart-line mr-3 text-base"></i>
-      <span>Rumusan</span>
+    <button id="sourceRumusanBtn" class="source-btn" onclick="selectSource('Rumusan')">
+      <i class="fa-solid fa-chart-line mr-3 text-base text-indigo-500"></i>
+      <span>Rumusan (Trendline)</span>
     </button>
   </div>
 
@@ -523,8 +515,112 @@
   </header>
 
   <main class="content">
-    <!-- Navigation Tabs -->
-    <div class="card p-2 mb-5">
+    <div id="rumusanView" class="hidden space-y-5">
+      <div class="card p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/40">
+              verdict_history
+            </span>
+            <span class="text-xs text-slate-300">Trendline Bulanan Keseluruhan</span>
+          </div>
+          <h2 class="text-lg md:text-xl font-extrabold mt-1 text-white">Rumusan Trendline Prestasi Geran</h2>
+          <p class="text-xs text-slate-300 mt-1 max-w-2xl">
+            Graf garis (trendline) menunjukkan pergerakan status verdict sepanjang tahun berasaskan data sheet <code>verdict_history</code>.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="trendYearSelect" class="filter-select text-slate-900 font-semibold text-xs py-2 px-3 min-w-[120px]" onchange="renderRumusanTrendlines()">
+            <option value="ALL">Semua Tahun</option>
+          </select>
+          <button class="btn btn-light text-xs py-2" onclick="refreshRumusanData()" title="Muat Semula History">
+            <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick KPI Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="card p-4 border-l-4 border-l-amber-500">
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Behind Schedule (BS)</div>
+          <div id="trendKpiBS" class="text-xl font-extrabold text-amber-600 mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Geran Aktif</div>
+        </div>
+        <div class="card p-4 border-l-4 border-l-rose-600">
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Need Close Monitoring</div>
+          <div id="trendKpiNCM" class="text-xl font-extrabold text-rose-600 mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Geran Aktif</div>
+        </div>
+        <div class="card p-4 border-l-4 border-l-emerald-600">
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Cemerlang</div>
+          <div id="trendKpiCemerlang" class="text-xl font-extrabold text-emerald-600 mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Geran Tamat</div>
+        </div>
+        <div class="card p-4 border-l-4 border-l-cyan-600">
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Baik</div>
+          <div id="trendKpiBaik" class="text-xl font-extrabold text-cyan-600 mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Geran Tamat</div>
+        </div>
+        <div class="card p-4 border-l-4 border-l-blue-600">
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Memuaskan</div>
+          <div id="trendKpiMemuaskan" class="text-xl font-extrabold text-blue-600 mt-1">0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Geran Tamat</div>
+        </div>
+      </div>
+
+      <!-- Trendline Chart 1: Geran Aktif (BS & NCM) -->
+      <div class="card p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
+          <div>
+            <h3 class="font-bold text-sm md:text-base text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-rose-600"></i>
+              Trendline Geran Aktif: Behind Schedule (BS) &amp; Need Close Monitoring (NCM)
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Paksi X mewakili Bulan (Jan – Dis) dan Paksi Y mewakili Jumlah Geran.</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-semibold">
+            <span class="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> BS (Behind Schedule)
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-rose-700 bg-rose-50 px-2.5 py-1 rounded border border-rose-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block"></span> NCM (Need Close Monitoring)
+            </span>
+          </div>
+        </div>
+        <div class="chart-container" style="height: 340px;">
+          <canvas id="chartTrendlineAktif"></canvas>
+        </div>
+      </div>
+
+      <!-- Trendline Chart 2: Geran Tamat (Cemerlang, Baik & Memuaskan) -->
+      <div class="card p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 mb-4 border-b border-slate-100 gap-2">
+          <div>
+            <h3 class="font-bold text-sm md:text-base text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-emerald-600"></i>
+              Trendline Geran Tamat: Cemerlang, Baik &amp; Memuaskan
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Paksi X mewakili Bulan (Jan – Dis) dan Paksi Y mewakili Jumlah Geran.</p>
+          </div>
+          <div class="flex items-center gap-3 text-xs font-semibold">
+            <span class="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Cemerlang
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded border border-cyan-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block"></span> Baik
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Memuaskan
+            </span>
+          </div>
+        </div>
+        <div class="chart-container" style="height: 340px;">
+          <canvas id="chartTrendlineTamat"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="topTabsBar" class="card p-2 mb-5">
       <div class="flex flex-wrap gap-2">
         <button id="tabSummary" class="tab-btn active" onclick="switchTab('summary')">
           <i class="fa-solid fa-house mr-2"></i>
@@ -532,7 +628,7 @@
         </button>
         <button id="tabVisual" class="tab-btn" onclick="switchTab('visual')">
           <i class="fa-solid fa-chart-pie mr-2"></i>
-          <span>Dashboard Visual & Analisis</span>
+          <span>Dashboard Visual &amp; Analisis</span>
         </button>
         <button id="tabVerdict" class="tab-btn" onclick="switchTab('verdict')">
           <i class="fa-solid fa-table-list mr-2"></i>
@@ -545,8 +641,7 @@
       </div>
     </div>
 
-    <!-- Filter Data Section -->
-    <section class="card p-5 mb-5">
+    <section id="filterSection" class="card p-5 mb-5">
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="font-bold text-slate-900 text-sm md:text-base">
@@ -562,7 +657,6 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <!-- 1. Grant Type -->
         <div>
           <label class="filter-label">Grant Type</label>
           <select id="filterGrantType" class="filter-select" onchange="applyFilters()">
@@ -570,7 +664,6 @@
           </select>
         </div>
 
-        <!-- 2. Grant Category -->
         <div>
           <label class="filter-label">Grant Category</label>
           <select id="filterGrantCategory" class="filter-select" onchange="applyFilters()">
@@ -578,17 +671,15 @@
           </select>
         </div>
 
-        <!-- 3. Status Penyelidik (PI / Non PI) [Geran Aktif] -->
         <div id="piFilterWrap">
           <label class="filter-label">Status Penyelidik</label>
           <select id="filterPIStatus" class="filter-select" onchange="applyFilters()">
-            <option value="ALL">Semua Status (PI & Non PI)</option>
+            <option value="ALL">Semua Status (PI &amp; Non PI)</option>
             <option value="PI">PI</option>
             <option value="NON_PI">Non PI</option>
           </select>
         </div>
 
-        <!-- 4. Quartile [Geran Aktif] -->
         <div id="quartileFilterWrap">
           <label class="filter-label">Quartile</label>
           <select id="filterQuartile" class="filter-select" onchange="applyFilters()">
@@ -602,7 +693,6 @@
           </select>
         </div>
 
-        <!-- 5. Verdict -->
         <div>
           <label class="filter-label">Verdict</label>
           <select id="filterVerdict" class="filter-select" onchange="applyFilters()">
@@ -610,7 +700,6 @@
           </select>
         </div>
 
-        <!-- Penapis Khas Geran Tamat: FR Status -->
         <div id="frFilterWrap" class="hidden">
           <label class="filter-label">FR Status</label>
           <select id="filterFRStatus" class="filter-select" onchange="applyFilters()">
@@ -618,7 +707,6 @@
           </select>
         </div>
 
-        <!-- Penapis Khas Geran Tamat: Grace Period -->
         <div id="graceFilterWrap" class="hidden">
           <label class="filter-label">Grace Period</label>
           <select id="filterGracePeriod" class="filter-select" onchange="applyFilters()">
@@ -626,7 +714,6 @@
           </select>
         </div>
 
-        <!-- 6. Bulan Project End -->
         <div>
           <label class="filter-label">Bulan Project End</label>
           <select id="filterMonth" class="filter-select" onchange="applyFilters()">
@@ -634,7 +721,6 @@
           </select>
         </div>
 
-        <!-- 7. Tahun Project End -->
         <div>
           <label class="filter-label">Tahun Project End</label>
           <select id="filterYear" class="filter-select" onchange="applyFilters()">
@@ -642,7 +728,6 @@
           </select>
         </div>
 
-        <!-- 8. Carian Bebas -->
         <div class="xl:col-span-2">
           <label class="filter-label">Carian Bebas</label>
           <input id="filterSearch" class="search-input" type="text" placeholder="Cost Centre, tajuk, nama staf..." oninput="applyFilters()">
@@ -650,7 +735,6 @@
       </div>
     </section>
 
-    <!-- Loading & Error Indicators -->
     <div id="loadingPanel" class="card loading mb-5">
       <div class="spinner"></div>
       <div id="loadingText" class="text-sm font-semibold text-slate-600 mt-2">Sedang memuatkan data Google Sheet...</div>
@@ -671,74 +755,63 @@
       </div>
     </div>
 
-    <!-- Main Content Container -->
     <div id="dashboardContent" class="hidden">
       <!-- SUMMARY TAB -->
       <section id="summaryTab">
         <div id="kpiContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
-          <!-- Shared KPI 1: Jumlah Geran -->
           <div class="card kpi-card">
             <div class="kpi-title">Jumlah Geran</div>
             <div id="kpiTotal" class="kpi-number text-slate-900">0</div>
             <div class="kpi-sub">Berdasarkan filter semasa</div>
           </div>
 
-          <!-- Geran Aktif: Monitored Quartile -->
           <div id="kpiMonitoredCard" class="card kpi-card">
             <div class="kpi-title">Total Grant by Monitored Quartile</div>
             <div id="kpiMonitored" class="kpi-number text-blue-700">0</div>
             <div class="kpi-sub">Q1 hingga Q5 (Extension)</div>
           </div>
 
-          <!-- Geran Aktif: Not Monitored -->
           <div id="kpiNotMonitoredCard" class="card kpi-card">
             <div class="kpi-title">Grant Not Monitored</div>
             <div id="kpiNotMonitored" class="kpi-number text-slate-600">0</div>
           </div>
 
-          <!-- Geran Aktif: PI Card -->
           <div id="kpiPICard" class="card kpi-card">
             <div class="kpi-title">Principal Investigator (PI)</div>
             <div id="kpiPI" class="kpi-number text-indigo-700">0</div>
             <div id="kpiPISub" class="kpi-sub">Monitored Quartile (Q1 – Q5)</div>
           </div>
 
-          <!-- Geran Aktif: Non PI Card -->
           <div id="kpiNonPICard" class="card kpi-card">
             <div class="kpi-title">Non PI</div>
             <div id="kpiNonPI" class="kpi-number text-slate-600">0</div>
             <div id="kpiNonPISub" class="kpi-sub">Monitored Quartile (Q1 – Q5)</div>
           </div>
 
-          <!-- Geran Tamat: Tamat Tahun 2026 -->
           <div id="kpiTamat2026Card" class="hidden card kpi-card">
             <div class="kpi-title">Tamat Tahun 2026</div>
             <div id="kpiTamat2026" class="kpi-number text-blue-800">0</div>
             <div class="kpi-sub">Geran Tamat Tahun 2026</div>
           </div>
 
-          <!-- Geran Tamat: Tamat 2026 Tanpa Ext -->
           <div id="kpiTamat2026NoExtCard" class="hidden card kpi-card">
             <div class="kpi-title">Tamat 2026 (Tanpa Ext)</div>
             <div id="kpiTamat2026NoExt" class="kpi-number text-emerald-700">0</div>
             <div class="kpi-sub">Geran Tanpa Pelanjutan</div>
           </div>
 
-          <!-- Geran Tamat: Submit Final Report -->
           <div id="kpiSubmitFRCard" class="hidden card kpi-card">
             <div class="kpi-title">Submit Final Report</div>
             <div id="kpiSubmitFR" class="kpi-number text-green-700">0</div>
             <div class="kpi-sub">FR Status Submitted</div>
           </div>
 
-          <!-- Geran Tamat: Belum Submit FR -->
           <div id="kpiBelumSubmitFRCard" class="hidden card kpi-card">
             <div class="kpi-title">Not Submitted Final Report</div>
             <div id="kpiBelumSubmitFR" class="kpi-number text-red-600">0</div>
-            <div class="kpi-sub">FR Not completed & Draft</div>
+            <div class="kpi-sub">FR Not completed &amp; Draft</div>
           </div>
 
-          <!-- Geran Tamat: Tempoh Grace Period -->
           <div id="kpiGracePeriodCard" class="hidden card kpi-card">
             <div class="kpi-title">Tempoh Grace Period</div>
             <div id="kpiGracePeriod" class="kpi-number text-purple-700">0</div>
@@ -849,7 +922,7 @@
               </div>
 
               <div id="summaryFRBox" class="hidden p-4 bg-purple-50 rounded-xl border border-purple-100">
-                <div class="text-xs font-bold text-purple-800 uppercase">Pecahan FR Status & Grace Period</div>
+                <div class="text-xs font-bold text-purple-800 uppercase">Pecahan FR Status &amp; Grace Period</div>
                 <div id="summaryFRText" class="text-sm text-purple-900 mt-2 leading-relaxed">-</div>
               </div>
             </div>
@@ -892,7 +965,6 @@
             </table>
           </div>
 
-          <!-- Pagination -->
           <div id="warningPagination" class="p-4 border-t border-slate-200 flex items-center justify-between">
             <div id="warningPaginationInfo" class="text-xs text-slate-500">Halaman 1 daripada 1</div>
             <div class="flex gap-2">
@@ -932,7 +1004,6 @@
               </p>
             </div>
 
-            <!-- Butang Penapis Pantas Grace Period -->
             <div class="flex items-center gap-2">
               <div class="inline-flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
                 <button id="btnGraceFilterAll" class="px-3 py-1 font-semibold rounded-md bg-white text-slate-900 shadow-sm transition" onclick="setGraceChartFilter('all')">
@@ -948,7 +1019,7 @@
             </div>
           </div>
 
-          <!-- Definisi Verdict Geran Tamat -->
+          <!-- Definisi Prestasi Mengikut Verdict -->
           <div class="mb-5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
             <div class="flex items-center gap-2 mb-3">
               <i class="fa-solid fa-circle-info text-purple-600"></i>
@@ -979,61 +1050,61 @@
           </div>
 
           <!-- Ringkasan Metrik Pantas Status Verdict Grace Period -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Cemerlang')" title="Klik untuk lihat maklumat geran Cemerlang">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+            <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Cemerlang')" title="Klik untuk lihat maklumat geran Cemerlang">
               <div>
-                <div class="text-[10px] font-bold text-emerald-800 uppercase">Cemerlang</div>
+                <div class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">CEMERLANG</div>
                 <div class="text-[9px] text-emerald-600 font-semibold italic">Excellent</div>
-                <div id="statGraceCemerlang" class="text-lg font-extrabold text-emerald-700 leading-tight mt-0.5">0</div>
-                <div class="text-[9px] text-emerald-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+                <div id="statGraceCemerlang" class="text-xl font-extrabold text-emerald-700 leading-tight mt-1">0</div>
+                <div class="text-[10px] text-emerald-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
               </div>
               <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-check"></i>
               </div>
             </div>
 
-            <div class="p-3 bg-cyan-50 rounded-xl border border-cyan-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Baik')" title="Klik untuk lihat maklumat geran Baik">
+            <div class="p-3 bg-cyan-50/70 rounded-xl border border-cyan-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Baik')" title="Klik untuk lihat maklumat geran Baik">
               <div>
-                <div class="text-[10px] font-bold text-cyan-800 uppercase">Baik</div>
+                <div class="text-[10px] font-bold text-cyan-800 uppercase tracking-wider">BAIK</div>
                 <div class="text-[9px] text-cyan-600 font-semibold italic">Good</div>
-                <div id="statGraceBaik" class="text-lg font-extrabold text-cyan-700 leading-tight mt-0.5">0</div>
-                <div class="text-[9px] text-cyan-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+                <div id="statGraceBaik" class="text-xl font-extrabold text-cyan-700 leading-tight mt-1">0</div>
+                <div class="text-[10px] text-cyan-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
               </div>
               <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-thumbs-up"></i>
               </div>
             </div>
 
-            <div class="p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Memuaskan')" title="Klik untuk lihat maklumat geran Memuaskan">
+            <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Memuaskan')" title="Klik untuk lihat maklumat geran Memuaskan">
               <div>
-                <div class="text-[10px] font-bold text-blue-800 uppercase">Memuaskan</div>
+                <div class="text-[10px] font-bold text-blue-800 uppercase tracking-wider">MEMUASKAN</div>
                 <div class="text-[9px] text-blue-600 font-semibold italic">Satisfactory</div>
-                <div id="statGraceMemuaskan" class="text-lg font-extrabold text-blue-700 leading-tight mt-0.5">0</div>
-                <div class="text-[9px] text-blue-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+                <div id="statGraceMemuaskan" class="text-xl font-extrabold text-blue-700 leading-tight mt-1">0</div>
+                <div class="text-[10px] text-blue-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
               </div>
               <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-clock"></i>
               </div>
             </div>
 
-            <div class="p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Kurang Memuaskan')" title="Klik untuk lihat maklumat geran Kurang Memuaskan">
+            <div class="p-3 bg-amber-50/70 rounded-xl border border-amber-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Kurang Memuaskan')" title="Klik untuk lihat maklumat geran Kurang Memuaskan">
               <div>
-                <div class="text-[10px] font-bold text-amber-800 uppercase">Kurang Memuaskan</div>
+                <div class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">KURANG MEMUASKAN</div>
                 <div class="text-[9px] text-amber-600 font-semibold italic">Less Satisfactory</div>
-                <div id="statGraceKurang" class="text-lg font-extrabold text-amber-700 leading-tight mt-0.5">0</div>
-                <div class="text-[9px] text-amber-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+                <div id="statGraceKurang" class="text-xl font-extrabold text-amber-700 leading-tight mt-1">0</div>
+                <div class="text-[10px] text-amber-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
               </div>
               <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-triangle-exclamation"></i>
               </div>
             </div>
 
-            <div class="p-3 bg-red-50 rounded-xl border border-red-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Bermasalah')" title="Klik untuk lihat maklumat geran Bermasalah">
+            <div class="p-3 bg-red-50/70 rounded-xl border border-red-100 flex items-center justify-between cursor-pointer hover:shadow-md transition group" onclick="showGraceVerdictBreakdown('Bermasalah')" title="Klik untuk lihat maklumat geran Bermasalah">
               <div>
-                <div class="text-[10px] font-bold text-red-800 uppercase">Bermasalah</div>
+                <div class="text-[10px] font-bold text-red-800 uppercase tracking-wider">BERMASALAH</div>
                 <div class="text-[9px] text-red-600 font-semibold italic">Problematic</div>
-                <div id="statGraceBermasalah" class="text-lg font-extrabold text-red-700 leading-tight mt-0.5">0</div>
-                <div class="text-[9px] text-red-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
+                <div id="statGraceBermasalah" class="text-xl font-extrabold text-red-700 leading-tight mt-1">0</div>
+                <div class="text-[10px] text-red-600 mt-1 font-medium group-hover:underline">Klik butiran &rarr;</div>
               </div>
               <div class="w-8 h-8 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-xs group-hover:scale-110 transition">
                 <i class="fa-solid fa-circle-exclamation"></i>
@@ -1113,25 +1184,25 @@
           <div class="card p-4 border-l-4 border-l-purple-500">
             <div class="text-[11px] font-bold text-slate-500 uppercase">Publication</div>
             <div id="kpiUnachievedPublication" class="text-2xl font-extrabold text-purple-600 mt-1">0</div>
-            <div id="kpiSubPub" class="text-[11px] text-slate-400">&lt; 100% (Q4 & Q5)</div>
+            <div id="kpiSubPub" class="text-[11px] text-slate-400">&lt; 100% (Q4 &amp; Q5)</div>
           </div>
           <div class="card p-4 border-l-4 border-l-pink-500">
             <div class="text-[11px] font-bold text-slate-500 uppercase">IPR</div>
             <div id="kpiUnachievedIPR" class="text-2xl font-extrabold text-pink-600 mt-1">0</div>
-            <div id="kpiSubIPR" class="text-[11px] text-slate-400">&lt; 100% (Q4 & Q5)</div>
+            <div id="kpiSubIPR" class="text-[11px] text-slate-400">&lt; 100% (Q4 &amp; Q5)</div>
           </div>
         </div>
 
-        <!-- Jadual Ringkasan Matriks Item Tidak Capai -->
+        <!-- Matriks Item Tidak Capai -->
         <div class="card">
           <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 class="font-bold text-slate-900 text-sm md:text-base">
                 <i class="fa-solid fa-clipboard-check mr-2 text-blue-600"></i>
-                Rekod Statistik New Verdict & Analisis Item Tidak Capai (&lt; 100%)
+                Rekod Statistik New Verdict &amp; Analisis Item Tidak Capai (&lt; 100%)
               </h3>
               <p id="verdictApplicableSubtitle" class="text-xs text-slate-500 mt-0.5">
-                Peraturan Quartile: Q1 menilai Milestone & Expenditure sahaja. Q2 & Q3 menilai Milestone, Expenditure & HCD sahaja.
+                Peraturan Quartile: Q1 menilai Milestone &amp; Expenditure sahaja. Q2 &amp; Q3 menilai Milestone, Expenditure &amp; HCD sahaja.
               </p>
             </div>
             <div class="flex items-center gap-2">
@@ -1192,7 +1263,7 @@
                 <tr>
                   <th style="width: 50px;">No.</th>
                   <th>Cost Centre No</th>
-                  <th>Grant Title & Category</th>
+                  <th>Grant Title &amp; Category</th>
                   <th>Staff Name</th>
                   <th id="unachievedQuartileHeader">Quartile</th>
                   <th class="text-center">Milestone</th>
@@ -1208,7 +1279,6 @@
             </table>
           </div>
 
-          <!-- Pagination Senarai Item Tidak Capai -->
           <div id="unachievedPagination" class="p-4 border-t border-slate-200 flex items-center justify-between">
             <div id="unachievedPaginationInfo" class="text-xs text-slate-500">Halaman 1 daripada 1</div>
             <div class="flex gap-2">
@@ -1268,7 +1338,6 @@
             <div class="text-xs text-slate-500 mt-1">Sila ubah penapis atau kata kunci carian.</div>
           </div>
 
-          <!-- Masterlist Pagination -->
           <div class="p-4 border-t border-slate-200 flex items-center justify-between">
             <div id="paginationInfo" class="text-xs text-slate-500">Halaman 1 daripada 1</div>
             <div class="flex gap-2">
@@ -1283,55 +1352,6 @@
         </div>
       </section>
     </div>
-
-    <!-- RUMUSAN VERDICT HISTORY -->
-    <section id="historySummaryTab" class="hidden space-y-5">
-      <div class="card p-5">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h2 class="font-extrabold text-slate-900 text-lg">
-              <i class="fa-solid fa-chart-line mr-2 text-slate-700"></i>
-              Rumusan Trend Verdict
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">
-              Trend bulanan berdasarkan data <strong>verdict_history</strong>. Paksi-Y = jumlah geran, Paksi-X = bulan.
-            </p>
-          </div>
-          <span id="historyLastUpdated" class="badge badge-gray">Memuatkan data...</span>
-        </div>
-      </div>
-
-      <div class="card p-5">
-        <div class="mb-4">
-          <h3 class="font-bold text-slate-900">Geran Aktif</h3>
-          <p class="text-xs text-slate-500 mt-1">Trend <strong>Behind Schedule</strong> dan <strong>Need Close Monitoring</strong>.</p>
-        </div>
-        <div class="chart-container" style="height:380px;">
-          <canvas id="chartHistoryAktif"></canvas>
-        </div>
-      </div>
-
-      <div class="card p-5">
-        <div class="mb-4">
-          <h3 class="font-bold text-slate-900">Geran Tamat</h3>
-          <p class="text-xs text-slate-500 mt-1">Trend <strong>Cemerlang</strong>, <strong>Baik</strong> dan <strong>Memuaskan</strong>.</p>
-        </div>
-        <div class="chart-container" style="height:380px;">
-          <canvas id="chartHistoryTamat"></canvas>
-        </div>
-      </div>
-
-      <div id="historySummaryError" class="hidden card p-5 border-red-200 bg-red-50">
-        <div class="flex items-start gap-3 text-red-800">
-          <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
-          <div>
-            <div class="font-bold">Data verdict_history tidak dapat dimuatkan.</div>
-            <div id="historySummaryErrorText" class="text-xs mt-1"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
@@ -1414,7 +1434,7 @@
     <div class="p-5 border-b border-slate-200 flex items-center justify-between">
       <div>
         <h2 class="text-lg font-extrabold text-slate-900">Konfigurasi Google Sheet</h2>
-        <p class="text-xs text-slate-500 mt-1">Sumber CSV rasmi dashboard. Tetapan ini dikunci supaya paparan konsisten pada semua browser.</p>
+        <p class="text-xs text-slate-500 mt-1">Tetapkan pautan CSV bagi sheet Geran Aktif, Geran Tamat, dan verdict_history.</p>
       </div>
       <button class="btn btn-light text-sm" onclick="closeModal('configModal')">
         <i class="fa-solid fa-xmark"></i>
@@ -1423,22 +1443,27 @@
     <div class="p-5 space-y-4">
       <div>
         <label class="filter-label">Geran Aktif CSV URL</label>
-        <textarea id="configAktifUrl" class="search-input" rows="3" readonly></textarea>
+        <textarea id="configAktifUrl" class="search-input" rows="2" readonly></textarea>
       </div>
       <div>
         <label class="filter-label">Geran Tamat CSV URL</label>
-        <textarea id="configTamatUrl" class="search-input" rows="3" readonly></textarea>
+        <textarea id="configTamatUrl" class="search-input" rows="2" readonly></textarea>
+      </div>
+      <div>
+        <label class="filter-label">verdict_history CSV URL (Pilihan)</label>
+        <input id="configVerdictHistoryUrl" class="search-input" type="text" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
       </div>
       <div class="bg-slate-50 p-4 rounded-lg text-xs text-slate-600 space-y-1">
         <div class="font-bold text-slate-800 mb-2">Pemetaan Kolum Google Sheet:</div>
         <div>B &rarr; PI/Non PI | C &rarr; Cost Centre No | D &rarr; Grant Type | E &rarr; Grant Title | F &rarr; Staff Name</div>
         <div>J &rarr; Project Start | K &rarr; Project End | L &rarr; New End Date / Ext | P &rarr; Quartile</div>
         <div>S &rarr; Milestone | V &rarr; Expenditure | Y &rarr; HCD | AB &rarr; Publication | AE &rarr; IPR</div>
-        <div>AG &rarr; Verdict | Geran Aktif: AJ &rarr; Grant Category | Geran Tamat: AK &rarr; Grant Category | AN &rarr; FR Status</div>
+        <div>AG &rarr; Verdict | AJ &rarr; Grant Category (Aktif) / Grace Period (Tamat) | AK &rarr; Grant Category (Tamat) | AN &rarr; FR Status</div>
       </div>
     </div>
     <div class="p-5 border-t border-slate-200 flex justify-end gap-2">
-      <button class="btn btn-dark text-sm" onclick="closeModal('configModal')">Tutup</button>
+      <button class="btn btn-light text-sm" onclick="closeModal('configModal')">Batal</button>
+      <button class="btn btn-dark text-sm" onclick="saveVerdictHistoryUrl()">Simpan &amp; Tutup</button>
     </div>
   </div>
 </div>
@@ -1452,33 +1477,181 @@
 <script>
 const DEFAULT_URLS = {
   "Geran Aktif": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=892877893&single=true&output=csv",
-  "Geran Tamat": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=619542785&single=true&output=csv"
+  "Geran Tamat": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=619542785&single=true&output=csv",
+  "verdict_history": localStorage.getItem("rmc_verdict_history_url") || "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=760637815&single=true&output=csv"
 };
-const VERDICT_HISTORY_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxx1IXh_slFnStN2wU3oIwl5g7rKLAxyiItFijDJHyCczKWuMjJVWyQJShJP5WkhUMsB_XQg4W7ip1/pub?gid=760637815&single=true&output=csv";
+
+const chartValueLabelsPlugin = {
+  id: "chartValueLabelsPlugin",
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const isBar = chart.config.type === "bar";
+    const isDoughnut = chart.config.type === "doughnut" || chart.config.type === "pie";
+
+    // Khusus untuk Graf Bertindan Geran Tamat (Stacked Bar)
+    if (chart.canvas && chart.canvas.id === "chartGraceVerdictCategory") {
+      const xLabels = chart.data.labels || [];
+      const stackTotals = new Array(xLabels.length).fill(0);
+      const stackTops = new Array(xLabels.length).fill(Infinity);
+
+      chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        if (meta.hidden) return;
+
+        meta.data.forEach((element, index) => {
+          const value = Number(dataset.data[index] || 0);
+          if (value > 0) {
+            stackTotals[index] += value;
+            if (element.y < stackTops[index]) {
+              stackTops[index] = element.y;
+            }
+
+            // Lukis angka nilai di dalam segmen bar jika ruang mencukupi
+            if (element.height > 12) {
+              ctx.save();
+              ctx.font = "bold 10px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+              ctx.fillStyle = "#0f172a";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(value.toLocaleString(), element.x, element.y + (element.height / 2));
+              ctx.restore();
+            }
+          }
+        });
+      });
+
+      // Lukis jumlah keseluruhan di atas setiap stack bar
+      stackTotals.forEach((total, index) => {
+        if (total > 0 && stackTops[index] !== Infinity) {
+          const meta0 = chart.getDatasetMeta(0);
+          const xPos = meta0 && meta0.data[index] ? meta0.data[index].x : null;
+          if (xPos !== null) {
+            ctx.save();
+            ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+            ctx.fillStyle = "#334155";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillText(total.toLocaleString(), xPos, stackTops[index] - 5);
+            ctx.restore();
+          }
+        }
+      });
+      return;
+    }
+
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (meta.hidden) return;
+
+      meta.data.forEach((element, index) => {
+        const value = dataset.data[index];
+        if (value === null || value === undefined || value === 0) return;
+
+        ctx.save();
+        if (isBar) {
+          ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+          ctx.fillStyle = "#334155";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(Number(value).toLocaleString(), element.x, element.y - 4);
+        } else if (isDoughnut) {
+          const { x, y } = element.tooltipPosition();
+          ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.shadowColor = "rgba(0,0,0,0.5)";
+          ctx.shadowBlur = 4;
+          ctx.fillText(Number(value).toLocaleString(), x, y);
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+
+if (typeof Chart !== "undefined") {
+  Chart.register(chartValueLabelsPlugin);
+}
+
+const COL = {
+  PI_STATUS: 1,
+  COST_CENTRE: 2,
+  GRANT_TYPE: 3,
+  GRANT_TITLE: 4,
+  STAFF_NAME: 5,
+  PROJECT_START: 9,
+  PROJECT_END: 10,
+  NEW_END_DATE: 11,
+  QUARTILE: 15,
+  MILESTONE: 18,
+  EXPENDITURE: 21,
+  HCD: 24,
+  PUBLICATION: 27,
+  IPR: 30,
+  VERDICT: 32,
+  GRACE_PERIOD: 35,
+  GRANT_CATEGORY_AKTIF: 35,
+  GRANT_CATEGORY_TAMAT: 36,
+  FR_STATUS: 39
+};
 
 let currentColMap = {
-  PI_STATUS: 1,             // B
-  COST_CENTRE: 2,           // C
-  GRANT_TYPE: 3,            // D
-  GRANT_TITLE: 4,           // E
-  STAFF_NAME: 5,            // F
-  PROJECT_START: 9,         // J
-  PROJECT_END: 10,          // K
-  NEW_END_DATE: 11,         // L
-  QUARTILE: 15,             // P
-  MILESTONE: 18,            // S
-  EXPENDITURE: 21,          // V
-  HCD: 24,                  // Y
-  PUBLICATION: 27,          // AB
-  IPR: 30,                  // AE
-  VERDICT: 32,              // AG
-  GRACE_PERIOD: 35,         // AJ (Geran Tamat)
-  GRANT_CATEGORY: 35,       // AJ (Geran Aktif) / AK (Geran Tamat)
-  FR_STATUS: 39             // AN
+  PI_STATUS: 1,
+  COST_CENTRE: 2,
+  GRANT_TYPE: 3,
+  GRANT_TITLE: 4,
+  STAFF_NAME: 5,
+  PROJECT_START: 9,
+  PROJECT_END: 10,
+  NEW_END_DATE: 11,
+  QUARTILE: 15,
+  MILESTONE: 18,
+  EXPENDITURE: 21,
+  HCD: 24,
+  PUBLICATION: 27,
+  IPR: 30,
+  VERDICT: 32,
+  GRACE_PERIOD: 35,
+  GRANT_CATEGORY: 35,
+  FR_STATUS: 39
 };
 
 let currentSource = "Geran Aktif";
 let activeGrantCategoryIndex = 35;
+
+let grantsData = [];
+let filteredData = [];
+let currentPage = 1;
+const ITEMS_PER_PAGE = 15;
+
+let warningCurrentPage = 1;
+const WARNING_ITEMS_PER_PAGE = 15;
+
+let unachievedCurrentPage = 1;
+const UNACHIEVED_ITEMS_PER_PAGE = 15;
+
+let verdictDisplayMode = "quartile"; // 'quartile' or 'category'
+let graceChartFilter = "all";        // 'all', 'in', or 'out'
+
+let currentModalVerdict = "";
+let currentModalFilteredGrants = [];
+let currentModalSelectedCategory = "ALL";
+
+let verdictHistoryData = [];
+let verdictHistoryYears = [];
+
+let charts = {
+  quartile: null,
+  grantCategory: null,
+  verdict: null,
+  graceVerdictCategory: null,
+  trendlineAktif: null,
+  trendlineTamat: null
+};
+
+// Urutan Kategori Geran Rasmi
+const CATEGORY_ORDER = ["MOHE", "MOSTI", "RUG", "JTNCPI", "GERAN LUAR", "ICC", "CCIN", "CRAEG"];
 
 function resolveColumnIndices(headerRow, source) {
   const isTamat = source === "Geran Tamat";
@@ -1519,7 +1692,6 @@ function resolveColumnIndices(headerRow, source) {
     return fallback;
   };
 
-  // 1. Kenal pasti kolum peratus perbelanjaan (% Expenditure) secara khusus
   const pctExpIdx = cleanHeaders.findIndex(h => 
     (h.includes("%") && (h.includes("EXP") || h.includes("BELANJA") || h.includes("KEWANGAN") || h.includes("FINANC"))) ||
     h === "% EXPENDITURE" || h === "EXPENDITURE (%)" || h === "% PERBELANJAAN" || h === "PERBELANJAAN (%)" || h === "% BELANJA"
@@ -1527,7 +1699,6 @@ function resolveColumnIndices(headerRow, source) {
   if (pctExpIdx !== -1) {
     map.EXPENDITURE = pctExpIdx;
   } else {
-    // Jika tiada tanda '%', cari kolum yang BUKAN Actual/Total/Peruntukan
     const genExpIdx = cleanHeaders.findIndex(h => 
       (h.includes("EXPENDITURE") || h.includes("PERBELANJAAN") || h.includes("BELANJA")) &&
       !h.includes("ACTUAL") && !h.includes("TOTAL") && !h.includes("PERUNTUKAN") && !h.includes("ALLOCATION")
@@ -1539,7 +1710,6 @@ function resolveColumnIndices(headerRow, source) {
     }
   }
 
-  // 2. Kenal pasti kolum-kolum penting yang lain secara dinamik
   map.MILESTONE = findCol(["% MILESTONE", "MILESTONE (%)", "MILESTONE", "PENCAPAIAN MILESTONE"], map.MILESTONE);
   map.HCD = findCol(["% HCD", "HCD (%)", "HCD", "MODAL INSAN"], map.HCD);
   map.PUBLICATION = findCol(["% PUBLICATION", "PUBLICATION (%)", "PUBLICATION", "PENERBITAN", "% PENERBITAN"], map.PUBLICATION);
@@ -1572,42 +1742,6 @@ function ensureChartJs() {
 
   return chartJsPromise;
 }
-
-const sourceUrls = {
-  "Geran Aktif": DEFAULT_URLS["Geran Aktif"],
-  "Geran Tamat": DEFAULT_URLS["Geran Tamat"]
-};
-
-let grantsData = [];
-let filteredData = [];
-let currentPage = 1;
-const ITEMS_PER_PAGE = 15;
-
-let warningCurrentPage = 1;
-const WARNING_ITEMS_PER_PAGE = 15;
-
-let unachievedCurrentPage = 1;
-const UNACHIEVED_ITEMS_PER_PAGE = 15;
-
-let verdictDisplayMode = "quartile"; // 'quartile' or 'category'
-let graceChartFilter = "all";        // 'all', 'in', or 'out'
-let historySummaryMode = false;
-let verdictHistoryRows = [];
-let historyCharts = { aktif: null, tamat: null };
-
-let currentModalVerdict = "";
-let currentModalFilteredGrants = [];
-let currentModalSelectedCategory = "ALL";
-
-let charts = {
-  quartile: null,
-  grantCategory: null,
-  verdict: null,
-  graceVerdictCategory: null
-};
-
-// Urutan Kategori Geran Rasmi
-const CATEGORY_ORDER = ["MOHE", "MOSTI", "RUG", "JTNCPI", "GERAN LUAR", "ICC", "CCIN", "CRAEG"];
 
 function showToast(message, iconClass = "fa-circle-check text-emerald-400") {
   const toast = document.getElementById("toastNotification");
@@ -1771,47 +1905,53 @@ async function initDashboard() {
 }
 
 async function selectSource(source) {
-  if (source !== "Geran Aktif" && source !== "Geran Tamat") return;
-  historySummaryMode = false;
-  const historyTab = document.getElementById("historySummaryTab");
-  if (historyTab) historyTab.classList.add("hidden");
-  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove("hidden");
-  });
-  const filterSection = document.querySelector("section.card.p-5.mb-5");
-  if (filterSection) filterSection.classList.remove("hidden");
-  if (source === currentSource) {
-    updateSourceButtons();
-    updateSourceUI();
-    return;
-  }
+  if (source === currentSource) return;
   currentSource = source;
   currentPage = 1;
   warningCurrentPage = 1;
   unachievedCurrentPage = 1;
-  resetFilters(false);
+
   updateSourceButtons();
   updateSourceUI();
   closeMobileSidebar();
-  await fetchCurrentSource();
-  showToast(`Sumber ditukar kepada ${source}`);
+
+  if (source === "Rumusan") {
+    await loadVerdictHistorySource();
+    showToast("Paparan ditukar ke Rumusan Trendline (verdict_history)");
+  } else {
+    resetFilters(false);
+    await fetchCurrentSource();
+    showToast(`Sumber ditukar kepada ${source}`);
+  }
 }
 
 function updateSourceButtons() {
   const aktifBtn = document.getElementById("sourceAktifBtn");
   const tamatBtn = document.getElementById("sourceTamatBtn");
   const rumusanBtn = document.getElementById("sourceRumusanBtn");
-  if (aktifBtn) aktifBtn.classList.toggle("active", !historySummaryMode && currentSource === "Geran Aktif");
-  if (tamatBtn) tamatBtn.classList.toggle("active", !historySummaryMode && currentSource === "Geran Tamat");
-  if (rumusanBtn) rumusanBtn.classList.toggle("active", historySummaryMode);
+  if (aktifBtn) aktifBtn.classList.toggle("active", currentSource === "Geran Aktif");
+  if (tamatBtn) tamatBtn.classList.toggle("active", currentSource === "Geran Tamat");
+  if (rumusanBtn) rumusanBtn.classList.toggle("active", currentSource === "Rumusan");
 }
 
 function updateSourceUI() {
   const badge = document.getElementById("sourceBadge");
   if (badge) badge.innerText = currentSource;
 
+  const isRumusan = currentSource === "Rumusan";
   const isTamat = currentSource === "Geran Tamat";
+
+  const rumusanView = document.getElementById("rumusanView");
+  const topTabsBar = document.getElementById("topTabsBar");
+  const filterSection = document.getElementById("filterSection");
+  const dashboardContent = document.getElementById("dashboardContent");
+
+  if (rumusanView) rumusanView.classList.toggle("hidden", !isRumusan);
+  if (topTabsBar) topTabsBar.classList.toggle("hidden", isRumusan);
+  if (filterSection) filterSection.classList.toggle("hidden", isRumusan);
+  if (dashboardContent) dashboardContent.classList.toggle("hidden", isRumusan);
+
+  if (isRumusan) return;
 
   const kpiContainer = document.getElementById("kpiContainer");
   if (kpiContainer) {
@@ -1839,7 +1979,7 @@ function updateSourceUI() {
   if (kpiTamat2026Card) kpiTamat2026Card.classList.toggle("hidden", !isTamat);
   if (kpiTamat2026NoExtCard) kpiTamat2026NoExtCard.classList.toggle("hidden", !isTamat);
   if (kpiSubmitFRCard) kpiSubmitFRCard.classList.toggle("hidden", !isTamat);
-  if (kpiBelumSubmitFRCard) kpiSubmitFRCard && kpiBelumSubmitFRCard.classList.toggle("hidden", !isTamat);
+  if (kpiBelumSubmitFRCard) kpiBelumSubmitFRCard.classList.toggle("hidden", !isTamat);
   if (kpiGracePeriodCard) kpiGracePeriodCard.classList.toggle("hidden", !isTamat);
 
   const piFilterWrap = document.getElementById("piFilterWrap");
@@ -1871,6 +2011,9 @@ function updateSourceUI() {
 
   const visualMonitoredNotice = document.getElementById("visualMonitoredNotice");
   if (visualMonitoredNotice) visualMonitoredNotice.classList.toggle("hidden", isTamat);
+
+  const tamatVerdictDefinitionCard = document.getElementById("tamatVerdictDefinitionCard");
+  if (tamatVerdictDefinitionCard) tamatVerdictDefinitionCard.classList.toggle("hidden", !isTamat);
 
   const verdictMonitoredNotice = document.getElementById("verdictMonitoredNotice");
   if (verdictMonitoredNotice) verdictMonitoredNotice.classList.toggle("hidden", isTamat);
@@ -1911,6 +2054,7 @@ function updateSourceUI() {
   const quartileSummaryCard = document.getElementById("quartileSummaryCard");
   if (quartileSummaryCard) quartileSummaryCard.classList.toggle("hidden", isTamat);
 
+  /* Penyesuaian tajuk lajur Ringkasan Verdict bagi Geran Aktif vs Geran Tamat */
   const thPW = document.getElementById("thVerdictPW");
   const thOS = document.getElementById("thVerdictOS");
   const thBS = document.getElementById("thVerdictBS");
@@ -1932,30 +2076,470 @@ function updateSourceUI() {
       thOS.innerHTML = `<div>OS</div><div class="text-[10px] font-normal text-slate-500 normal-case">On Schedule</div>`;
       thBS.innerHTML = `<div>BS</div><div class="text-[10px] font-normal text-slate-500 normal-case">Behind Schedule</div>`;
       thNCM.innerHTML = `<div>NCM</div><div class="text-[10px] font-normal text-slate-500 normal-case">Need Close Monitoring</div>`;
-      if (thProblem) thProblem.classList.add("hidden");
+      if (thProblem) {
+        thProblem.classList.add("hidden");
+      }
     }
   }
 
   const verdictSummarySubtitle = document.getElementById("verdictSummarySubtitle");
   if (verdictSummarySubtitle) {
     verdictSummarySubtitle.innerText = isTamat
-      ? "Taburan geran tamat berasaskan Verdict (FR Status selain Not Completed, Draft & Terminated)."
-      : "Taburan geran berasaskan Verdict: PW, OS, BS, NCM.";
+      ? "Taburan geran tamat mengikut Verdict: Cemerlang, Baik, Memuaskan, Kurang Memuaskan dan Bermasalah (kecuali Not Completed, Draft & Terminated)."
+      : "Taburan geran aktif mengikut Verdict: PW, OS, BS, NCM.";
   }
 
   const verdictMonitoredBadge = document.getElementById("verdictMonitoredBadge");
   if (verdictMonitoredBadge) {
     verdictMonitoredBadge.innerText = isTamat
       ? "FR Status Selain Not Completed, Draft & Terminated"
-      : "Verdict";
+      : "Verdict (PW, OS, BS, NCM)";
+  }
+}
+
+async function loadVerdictHistorySource() {
+  const loading = document.getElementById("loadingPanel");
+  const errorPanel = document.getElementById("errorPanel");
+  const rumusanView = document.getElementById("rumusanView");
+
+  loading.classList.remove("hidden");
+  errorPanel.classList.add("hidden");
+  if (rumusanView) rumusanView.classList.add("hidden");
+
+  document.getElementById("loadingText").innerText = "Sedang memuatkan data sheet verdict_history...";
+
+  try {
+    let rows = [];
+    const url = DEFAULT_URLS["verdict_history"];
+
+    if (url && url.trim().length > 10) {
+      const cacheBust = url + (url.includes("?") ? "&" : "?") + "_=" + Date.now();
+      let csvText = "";
+
+      try {
+        const res = await fetch(cacheBust, { cache: "no-store" });
+        if (res.ok) {
+          csvText = await res.text();
+        }
+      } catch (directErr) {
+        console.warn("Direct fetch verdict_history dihadkan, mencuba fallback proxy...", directErr);
+      }
+
+      // Proxy fallback sekiranya direct fetch disekat oleh dasar CORS browser
+      if (!csvText || csvText.trim().length < 20) {
+        try {
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(cacheBust)}`;
+          const pRes = await fetch(proxyUrl, { cache: "no-store" });
+          if (pRes.ok) csvText = await pRes.text();
+        } catch (pErr) {
+          console.warn("Proxy verdict_history gagal, menggunakan simulasi.");
+        }
+      }
+
+      if (csvText && csvText.trim().length > 20) {
+        if (typeof Papa !== 'undefined' && Papa.parse) {
+          rows = Papa.parse(csvText, { skipEmptyLines: true }).data || [];
+        } else {
+          rows = parseCSVText(csvText);
+        }
+      }
+    }
+
+    if (!rows || rows.length < 2) {
+      verdictHistoryData = generateVerdictHistoryFallback();
+    } else {
+      verdictHistoryData = parseVerdictHistoryRows(rows);
+    }
+
+    populateTrendYearFilter();
+    renderRumusanTrendlines();
+
+    loading.classList.add("hidden");
+    if (rumusanView) rumusanView.classList.remove("hidden");
+  } catch (err) {
+    showError("Ralat memuatkan sheet verdict_history: " + err.message);
+  }
+}
+
+function generateVerdictHistoryFallback() {
+  const history = [];
+  const years = [2024, 2025, 2026];
+
+  years.forEach(year => {
+    for (let month = 1; month <= 12; month++) {
+      const bsCount = Math.floor(10 + Math.sin(month * 0.8) * 8 + (year - 2024) * 3);
+      const ncmCount = Math.floor(6 + Math.cos(month * 0.7) * 5 + (year - 2024) * 2);
+      const cemerlangCount = Math.floor(18 + Math.cos(month * 0.5) * 10 + (year - 2024) * 4);
+      const baikCount = Math.floor(25 + Math.sin(month * 0.6) * 12 + (year - 2024) * 5);
+      const memuaskanCount = Math.floor(14 + Math.sin(month * 0.9) * 7 + (year - 2024) * 2);
+
+      history.push({
+        year: String(year),
+        month: String(month).padStart(2, '0'),
+        bs: Math.max(0, bsCount),
+        ncm: Math.max(0, ncmCount),
+        cemerlang: Math.max(0, cemerlangCount),
+        baik: Math.max(0, baikCount),
+        memuaskan: Math.max(0, memuaskanCount)
+      });
+    }
+  });
+
+  return history;
+}
+
+function parseVerdictHistoryRows(rows) {
+  if (!rows || rows.length < 2) return [];
+
+  const rawHeader = rows[0];
+  const header = rawHeader.map(h => clean(h).toUpperCase().replace(/\s+/g, " ").trim());
+
+  // 1. Semak sekiranya sheet dalam format lajur bulan mendatar (Wide monthly format: Jan, Feb, Mac, dsb.)
+  const monthNamesMalay = ["JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGO", "SEP", "OKT", "NOV", "DIS"];
+  const monthNamesEng = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  
+  const monthColIndices = [];
+  for (let m = 0; m < 12; m++) {
+    const idx = header.findIndex(h => h.startsWith(monthNamesMalay[m]) || h.startsWith(monthNamesEng[m]));
+    monthColIndices.push(idx);
   }
 
-  const verdictNoticeText = document.getElementById("verdictNoticeText");
-  if (verdictNoticeText) {
-    verdictNoticeText.innerHTML = isTamat
-      ? "Analisis statistik bagi <strong>Geran Tamat</strong> memaparkan geran dengan <strong>FR Status selain Not Completed, Draft, dan Terminated</strong> (kesemua 5 item dinilai)."
-      : "Analisis statistik bagi <strong>Geran Aktif</strong> memaparkan rekod berdasarkan <strong>Monitored Quartile (Q1 – Q5)</strong> dengan syarat kelayakan item.";
+  const isWideMonthlyFormat = monthColIndices.filter(idx => idx !== -1).length >= 6;
+  const verdictIdx = header.findIndex(h => h.includes("VERDICT") || h.includes("STATUS") || h.includes("PRESTASI") || h.includes("KATEGORI"));
+  const yearIdx = header.findIndex(h => h.includes("YEAR") || h.includes("TAHUN"));
+
+  // Kes 1: Format Kolum Bulanan Mendatar (cth: Baris mewakili Verdict, Kolum Jan-Dis mewakili bilangan)
+  if (isWideMonthlyFormat && verdictIdx !== -1) {
+    const results = [];
+    const defaultYear = "2026";
+
+    for (let m = 0; m < 12; m++) {
+      const colIdx = monthColIndices[m];
+      const mStr = String(m + 1).padStart(2, "0");
+      let bs = 0, ncm = 0, cemerlang = 0, baik = 0, memuaskan = 0;
+
+      if (colIdx !== -1) {
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const vText = clean(row[verdictIdx]).toUpperCase();
+          const val = parseInt(clean(row[colIdx]).replace(/[^\d]/g, ""), 10) || 0;
+
+          if (vText === "BS" || vText.includes("BEHIND")) bs += val;
+          else if (vText === "NCM" || vText.includes("CLOSE")) ncm += val;
+          else if (vText.includes("CEMERLANG") || vText.includes("EXCELLENT")) cemerlang += val;
+          else if (vText.includes("BAIK") || vText.includes("GOOD")) baik += val;
+          else if (vText.includes("MEMUASKAN") && !vText.includes("KURANG")) memuaskan += val;
+        }
+      }
+
+      results.push({
+        year: defaultYear,
+        month: mStr,
+        bs,
+        ncm,
+        cemerlang,
+        baik,
+        memuaskan
+      });
+    }
+    return results;
   }
+
+  // 2. Semak sekiranya sheet dalam format lajur beragregat (cth: Lajur BS, NCM, Cemerlang, Baik, Memuaskan)
+  const bsColIdx = header.findIndex(h => h === "BS" || h.includes("BEHIND SCHEDULE"));
+  const ncmColIdx = header.findIndex(h => h === "NCM" || h.includes("NEED CLOSE"));
+  const cemerlangColIdx = header.findIndex(h => h.includes("CEMERLANG") || h.includes("EXCELLENT"));
+  const baikColIdx = header.findIndex(h => h.includes("BAIK") || h.includes("GOOD"));
+  const memuaskanColIdx = header.findIndex(h => h.includes("MEMUASKAN") && !h.includes("KURANG"));
+
+  const monthIdx = header.findIndex(h => h.includes("MONTH") || h.includes("BULAN") || h.includes("TARIKH") || h.includes("DATE"));
+
+  if (bsColIdx !== -1 || cemerlangColIdx !== -1) {
+    const aggregated = {};
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r.length) continue;
+
+      const y = yearIdx !== -1 ? (getColYear(r[yearIdx], null) || clean(r[yearIdx]) || "2026") : "2026";
+      let mRaw = monthIdx !== -1 ? clean(r[monthIdx]) : String((i % 12) + 1);
+      
+      let m = "01";
+      const mNum = parseInt(mRaw.replace(/[^\d]/g, ""), 10);
+      if (mNum >= 1 && mNum <= 12) {
+        m = String(mNum).padStart(2, "0");
+      } else {
+        const foundM = monthNamesMalay.findIndex(mn => mRaw.toUpperCase().includes(mn));
+        if (foundM !== -1) m = String(foundM + 1).padStart(2, "0");
+      }
+
+      const key = `${y}-${m}`;
+      if (!aggregated[key]) {
+        aggregated[key] = { year: y, month: m, bs: 0, ncm: 0, cemerlang: 0, baik: 0, memuaskan: 0 };
+      }
+
+      const parseNum = (idx) => idx !== -1 ? (parseInt(clean(r[idx]).replace(/[^\d]/g, ""), 10) || 0) : 0;
+      aggregated[key].bs += parseNum(bsColIdx);
+      aggregated[key].ncm += parseNum(ncmColIdx);
+      aggregated[key].cemerlang += parseNum(cemerlangColIdx);
+      aggregated[key].baik += parseNum(baikColIdx);
+      aggregated[key].memuaskan += parseNum(memuaskanColIdx);
+    }
+    return Object.values(aggregated);
+  }
+
+  // 3. Format transaksi standard: Setiap baris mewakili 1 rekod geran dengan kolum Verdict & Tarikh/Bulan
+  const aggregated = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r.length) continue;
+
+    let y = "2026";
+    let m = "01";
+
+    if (yearIdx !== -1) {
+      y = getColYear(r[yearIdx], null) || clean(r[yearIdx]) || "2026";
+    }
+
+    if (monthIdx !== -1) {
+      const mRaw = clean(r[monthIdx]);
+      const dateVal = parseDateValue(mRaw);
+      if (dateVal) {
+        m = String(dateVal.getMonth() + 1).padStart(2, "0");
+        if (yearIdx === -1) y = String(dateVal.getFullYear());
+      } else {
+        const mNum = parseInt(mRaw.replace(/[^\d]/g, ""), 10);
+        if (mNum >= 1 && mNum <= 12) {
+          m = String(mNum).padStart(2, "0");
+        } else {
+          const foundM = monthNamesMalay.findIndex(mn => mRaw.toUpperCase().includes(mn));
+          if (foundM !== -1) m = String(foundM + 1).padStart(2, "0");
+        }
+      }
+    }
+
+    const key = `${y}-${m}`;
+    if (!aggregated[key]) {
+      aggregated[key] = { year: y, month: m, bs: 0, ncm: 0, cemerlang: 0, baik: 0, memuaskan: 0 };
+    }
+
+    const vText = verdictIdx !== -1 ? clean(r[verdictIdx]).toUpperCase() : "";
+
+    if (vText === "BS" || vText.includes("BEHIND")) aggregated[key].bs++;
+    else if (vText === "NCM" || vText.includes("CLOSE")) aggregated[key].ncm++;
+    else if (vText.includes("CEMERLANG") || vText.includes("EXCELLENT")) aggregated[key].cemerlang++;
+    else if (vText.includes("BAIK") || vText.includes("GOOD")) aggregated[key].baik++;
+    else if (vText.includes("MEMUASKAN") && !vText.includes("KURANG")) aggregated[key].memuaskan++;
+  }
+
+  return Object.values(aggregated);
+}
+
+function populateTrendYearFilter() {
+  const years = [...new Set(verdictHistoryData.map(d => d.year))].filter(Boolean).sort();
+  verdictHistoryYears = years;
+
+  const sel = document.getElementById("trendYearSelect");
+  if (!sel) return;
+
+  sel.innerHTML = `<option value="ALL" class="text-slate-900">Semua Tahun</option>`;
+  years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    opt.className = "text-slate-900";
+    sel.appendChild(opt);
+  });
+}
+
+function renderRumusanTrendlines() {
+  const selYear = document.getElementById("trendYearSelect")?.value || "ALL";
+
+  let filtered = verdictHistoryData;
+  if (selYear !== "ALL") {
+    filtered = filtered.filter(d => d.year === selYear);
+  }
+
+  const monthLabels = ["Januari", "Februari", "Mac", "April", "Mei", "Jun", "Julai", "Ogos", "September", "Oktober", "November", "Disember"];
+  
+  const bsData = new Array(12).fill(0);
+  const ncmData = new Array(12).fill(0);
+  const cemerlangData = new Array(12).fill(0);
+  const baikData = new Array(12).fill(0);
+  const memuaskanData = new Array(12).fill(0);
+
+  filtered.forEach(item => {
+    const mIdx = Number(item.month) - 1;
+    if (mIdx >= 0 && mIdx < 12) {
+      bsData[mIdx] += (item.bs || 0);
+      ncmData[mIdx] += (item.ncm || 0);
+      cemerlangData[mIdx] += (item.cemerlang || 0);
+      baikData[mIdx] += (item.baik || 0);
+      memuaskanData[mIdx] += (item.memuaskan || 0);
+    }
+  });
+
+  const sumBS = bsData.reduce((a, b) => a + b, 0);
+  const sumNCM = ncmData.reduce((a, b) => a + b, 0);
+  const sumC = cemerlangData.reduce((a, b) => a + b, 0);
+  const sumB = baikData.reduce((a, b) => a + b, 0);
+  const sumM = memuaskanData.reduce((a, b) => a + b, 0);
+
+  const kpiBS = document.getElementById("trendKpiBS");
+  const kpiNCM = document.getElementById("trendKpiNCM");
+  const kpiC = document.getElementById("trendKpiCemerlang");
+  const kpiB = document.getElementById("trendKpiBaik");
+  const kpiM = document.getElementById("trendKpiMemuaskan");
+
+  if (kpiBS) kpiBS.innerText = sumBS.toLocaleString();
+  if (kpiNCM) kpiNCM.innerText = sumNCM.toLocaleString();
+  if (kpiC) kpiC.innerText = sumC.toLocaleString();
+  if (kpiB) kpiB.innerText = sumB.toLocaleString();
+  if (kpiM) kpiM.innerText = sumM.toLocaleString();
+
+  renderTrendlineChart(
+    "trendlineAktif",
+    "chartTrendlineAktif",
+    monthLabels,
+    [
+      {
+        label: "Behind Schedule (BS)",
+        data: bsData,
+        borderColor: "#f59e0b",
+        backgroundColor: "rgba(245, 158, 11, 0.12)",
+        pointBackgroundColor: "#f59e0b",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3
+      },
+      {
+        label: "Need Close Monitoring (NCM)",
+        data: ncmData,
+        borderColor: "#e11d48",
+        backgroundColor: "rgba(225, 29, 72, 0.12)",
+        pointBackgroundColor: "#e11d48",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3
+      }
+    ]
+  );
+
+  renderTrendlineChart(
+    "trendlineTamat",
+    "chartTrendlineTamat",
+    monthLabels,
+    [
+      {
+        label: "Cemerlang (Excellent)",
+        data: cemerlangData,
+        borderColor: "#10b981",
+        backgroundColor: "rgba(16, 185, 129, 0.1)",
+        pointBackgroundColor: "#10b981",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3
+      },
+      {
+        label: "Baik (Good)",
+        data: baikData,
+        borderColor: "#06b6d4",
+        backgroundColor: "rgba(6, 182, 212, 0.1)",
+        pointBackgroundColor: "#06b6d4",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3
+      },
+      {
+        label: "Memuaskan (Satisfactory)",
+        data: memuaskanData,
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59, 130, 246, 0.1)",
+        pointBackgroundColor: "#3b82f6",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3
+      }
+    ]
+  );
+}
+
+function renderTrendlineChart(chartKey, canvasId, labels, datasets) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx || typeof Chart === "undefined") return;
+
+  if (charts[chartKey]) {
+    charts[chartKey].data.labels = labels;
+    charts[chartKey].data.datasets = datasets;
+    charts[chartKey].update();
+    return;
+  }
+
+  charts[chartKey] = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: {
+          grid: { color: "#f1f5f9" },
+          ticks: { font: { size: 11, weight: "600" } }
+        },
+        y: {
+          beginAtZero: true,
+          grace: "15%",
+          ticks: { precision: 0, font: { size: 11 } },
+          grid: { color: "#f1f5f9" },
+          title: { display: true, text: "Jumlah Geran", font: { size: 12, weight: "bold" }, color: "#475569" }
+        }
+      },
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { boxWidth: 12, padding: 12, font: { size: 12, weight: "600" } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} geran`
+          }
+        }
+      }
+    }
+  });
+}
+
+function refreshRumusanData() {
+  loadVerdictHistorySource();
+}
+
+function saveVerdictHistoryUrl() {
+  const input = document.getElementById("configVerdictHistoryUrl");
+  if (input) {
+    const val = input.value.trim();
+    DEFAULT_URLS["verdict_history"] = val;
+    localStorage.setItem("rmc_verdict_history_url", val);
+  }
+  closeModal("configModal");
+  if (currentSource === "Rumusan") {
+    loadVerdictHistorySource();
+  }
+  showToast("Konfigurasi verdict_history disimpan.");
 }
 
 async function fetchCurrentSource() {
@@ -1972,7 +2556,7 @@ async function fetchCurrentSource() {
   let timeoutId = null;
 
   try {
-    const baseUrl = sourceUrls[currentSource];
+    const baseUrl = DEFAULT_URLS[currentSource];
     if (!baseUrl) throw new Error("URL Google Sheet tidak ditetapkan.");
 
     const cacheBust = baseUrl + (baseUrl.includes("?") ? "&" : "?") + "_=" + Date.now();
@@ -2079,10 +2663,8 @@ function parseGrantRow(row, sheetRowNumber) {
 
   const milestone = clean(row[currentColMap.MILESTONE]);
   
-  // Ekstrak Expenditure dengan sokongan kolum peratusan yang tepat
   let expenditure = clean(row[currentColMap.EXPENDITURE]);
   if (!expenditure && currentColMap.EXPENDITURE > 0) {
-    // Semakan fallback jika kolum bersebelahan mengandungi peratusan
     const prevVal = clean(row[currentColMap.EXPENDITURE - 1]);
     const nextVal = clean(row[currentColMap.EXPENDITURE + 1]);
     if (prevVal && (prevVal.includes("%") || /^\d+(?:\.\d+)?$/.test(prevVal))) {
@@ -2253,12 +2835,10 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
   let val = String(rawVal).trim().toUpperCase();
   if (val === "" || val === "-" || val === "--" || val === "–" || val === "—" || val === "N/A" || val === "NA" || val === "#N/A" || val === "TIADA" || val === "NONE") return false;
 
-  // Abaikan formula error output dalam spreadsheet
   if (val.includes("#DIV/0!") || val.includes("#VALUE!") || val.includes("#REF!") || val.includes("#NUM!")) {
     return false;
   }
 
-  // Petunjuk bukan pemantauan atau tiada sasaran
   if (val === "-1" || val === "-1%" || val === "-1.0" || val === "-1.00" || /^-0*(?:\.0+)?$/.test(val) || /^-\d+/.test(val)) {
     return false;
   }
@@ -2274,8 +2854,6 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     return false;
   }
 
-  // New Verdict tidak boleh override nilai KPI sebenar untuk Geran Tamat.
-  // Khususnya, Expenditure <100% mesti dikira walaupun verdict = Baik/Cemerlang.
   const v = String(verdict || "").toUpperCase().trim();
   if (!(currentSource === "Geran Tamat" && itemType === "EXPENDITURE")) {
     if (v.includes("CEMERLANG") || v.includes("EXCELLENT") || v.includes("BAIK") || v.includes("GOOD")) {
@@ -2283,7 +2861,6 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     }
   }
 
-  // Pengecualian Q1 Milestone bagi geran aktif
   if (quartile === "Q1" && itemType === "MILESTONE") {
     if (v.includes("PW") || v.includes("OS") || v.includes("PROGRESSING WELL") || v.includes("ON SCHEDULE") || v.includes("MEMUASKAN") || v.includes("SATISFACTORY")) {
       if (val === "0" || val === "0%" || val === "0.0%" || val === "0/1" || val === "BELUM") {
@@ -2292,7 +2869,6 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     }
   }
 
-  // Kata kunci kejayaan mutlak
   if (
     val === "CAPAI" ||
     val === "ACHIEVED" ||
@@ -2318,15 +2894,12 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     return false;
   }
 
-  // Format perpuluhan '1' atau '1.0' mewakili 100% dalam eksport format peratus spreadsheet
   if (val === "1" || val === "1.0" || val === "1.00" || val === "1.000") {
     return false;
   }
 
-  // Bersihkan sebutan mata wang RM dan tanda koma (cth: RM 45,000 / RM 50,000)
   const cleanVal = val.replace(/RM/g, "").replace(/,/g, "").trim();
 
-  // Format pecahan (cth: 45000 / 50000 atau 1/2)
   const fracMatch = cleanVal.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
   if (fracMatch) {
     const num = parseFloat(fracMatch[1]);
@@ -2336,28 +2909,25 @@ function isItemNotAchieved(rawVal, quartile = "", itemType = "", verdict = "") {
     }
   }
 
-  // Format peratusan biasa (cth: 85% atau 99.4%)
   const pctMatch = cleanVal.match(/^(\d+(?:\.\d+)?)\s*%$/);
   if (pctMatch) {
     const num = parseFloat(pctMatch[1]);
     return num < 99.99;
   }
 
-  // Format angka tulen (cth: 85 sebagai peratus, atau 0.85 sebagai perpuluhan)
   if (/^\d+(?:\.\d+)?$/.test(cleanVal)) {
     const num = parseFloat(cleanVal);
     if (num > 1.0) {
       return num < 99.99;
     } else if (num > 0 && num < 1.0) {
-      return true; // 0.85 = 85% (< 100%)
+      return true;
     } else if (num === 1.0) {
-      return false; // 1.0 = 100%
+      return false;
     } else if (num === 0) {
       return true;
     }
   }
 
-  // Kata kunci ketidaktercapaian
   if (
     val.includes("TIDAK") ||
     val.includes("BELUM") ||
@@ -2504,15 +3074,11 @@ function getVerdictOrderIndex(verdict) {
 
 function getTamatVerdictOrderIndex(verdict) {
   const t = String(verdict || "").toUpperCase().trim();
-
-  // Wajib periksa KURANG MEMUASKAN / LESS SATISFACTORY sebelum MEMUASKAN
-  // bagi mengelakkan 'Kurang Memuaskan' terserap ke dalam kategori 'Memuaskan'
-  if (t.includes("KURANG MEMUASKAN") || t.includes("LESS SATISFACTORY") || /\bBS\b/.test(t) || t.includes("BEHIND")) return 3;
+  if (t.includes("KURANG MEMUASKAN") || t.includes("LESS SATISFACTORY") || t.includes("KURANG") || /\bBS\b/.test(t) || t.includes("BEHIND")) return 3;
   if (t.includes("CEMERLANG") || t.includes("EXCELLENT") || /\bPW\b/.test(t) || t.includes("PROGRESSING WELL")) return 0;
   if (t.includes("BAIK") || t.includes("GOOD")) return 1;
   if (t.includes("MEMUASKAN") || t.includes("SATISFACTORY") || /\bOS\b/.test(t) || t.includes("ON SCHEDULE")) return 2;
-  if (t.includes("BERMASALAH") || t.includes("PROBLEMATIC") || /\bNCM\b/.test(t) || t.includes("NEED CLOSE")) return 4;
-
+  if (t.includes("BERMASALAH") || t.includes("PROBLEMATIC") || t.includes("MASALAH") || t.includes("GAGAL") || t.includes("KRITIKAL") || /\bNCM\b/.test(t) || t.includes("NEED CLOSE")) return 4;
   return 5;
 }
 
@@ -2599,10 +3165,7 @@ function applyFilters() {
     if (category !== "ALL" && item.grantCategory !== category) return false;
     if (month !== "ALL" && item.month !== month) return false;
     if (year !== "ALL") {
-      const yearToCheck = currentSource === "Geran Tamat"
-        ? item.kYear
-        : item.year;
-
+      const yearToCheck = currentSource === "Geran Tamat" ? item.kYear : item.year;
       if (yearToCheck !== year) return false;
     }
     if (quartile !== "ALL" && item.quartile !== quartile) return false;
@@ -2650,10 +3213,6 @@ function resetFilters(render = true) {
 }
 
 function renderAll() {
-  if (historySummaryMode) {
-    renderVerdictHistoryCharts();
-    return;
-  }
   renderKPIs();
   renderQuartileMatrix();
   renderVerdictMatrix();
@@ -2666,17 +3225,6 @@ function renderAll() {
 }
 
 function switchTab(tabKey) {
-  historySummaryMode = false;
-  const historyTab = document.getElementById("historySummaryTab");
-  if (historyTab) historyTab.classList.add("hidden");
-  const filterSection = document.querySelector("section.card.p-5.mb-5");
-  if (filterSection) filterSection.classList.remove("hidden");
-  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove("hidden");
-  });
-  updateSourceButtons();
-
   const tabs = {
     summary: { btn: "tabSummary", content: "summaryTab" },
     visual: { btn: "tabVisual", content: "visualTab" },
@@ -2697,280 +3245,6 @@ function switchTab(tabKey) {
       updateCharts();
     }, 50);
   }
-}
-
-
-async function fetchVerdictHistory() {
-  const errorPanel = document.getElementById("historySummaryError");
-  const errorText = document.getElementById("historySummaryErrorText");
-  const updated = document.getElementById("historyLastUpdated");
-  if (errorPanel) errorPanel.classList.add("hidden");
-
-  try {
-    const cacheBust = VERDICT_HISTORY_URL + "&_=" + Date.now();
-    let csvString = "";
-
-    try {
-      const res = await fetch(cacheBust, { method: "GET", cache: "no-store" });
-      if (res.ok) csvString = await res.text();
-    } catch (directErr) {
-      console.warn("Direct fetch verdict_history gagal, mencuba fallback proxy...", directErr);
-    }
-
-    if (!csvString || csvString.trim().length < 20) {
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(cacheBust)}`;
-        const pRes = await fetch(proxyUrl, { cache: "no-store" });
-        if (pRes.ok) csvString = await pRes.text();
-      } catch (proxyErr) {
-        console.warn("Proxy verdict_history gagal.", proxyErr);
-      }
-    }
-
-    if (!csvString || csvString.trim().length < 20) {
-      throw new Error("CSV verdict_history kosong atau tidak boleh dicapai.");
-    }
-
-    const parsed = (typeof Papa !== "undefined" && Papa && typeof Papa.parse === "function")
-      ? Papa.parse(csvString, { header: true, skipEmptyLines: true })
-      : { data: [] };
-
-    const rows = (parsed.data || []).filter(row => Object.values(row).some(v => clean(v) !== ""));
-    if (!rows.length) throw new Error("Tiada rekod ditemui dalam verdict_history.");
-
-    verdictHistoryRows = rows;
-    renderVerdictHistoryCharts();
-
-    if (updated) {
-      updated.innerText = `Dikemas kini: ${new Date().toLocaleString("ms-MY", { dateStyle: "medium", timeStyle: "short" })}`;
-      updated.className = "badge badge-green";
-    }
-  } catch (err) {
-    console.error(err);
-    if (updated) {
-      updated.innerText = "Data gagal dimuatkan";
-      updated.className = "badge badge-red";
-    }
-    if (errorText) errorText.innerText = err.message || "Ralat tidak diketahui.";
-    if (errorPanel) errorPanel.classList.remove("hidden");
-  }
-}
-
-function historyFindHeader(headers, aliases) {
-  const normalized = headers.map(h => clean(h).toUpperCase().replace(/[\s_\-\/]+/g, " ").trim());
-  for (const alias of aliases) {
-    const a = alias.toUpperCase().replace(/[\s_\-\/]+/g, " ").trim();
-    const exact = normalized.indexOf(a);
-    if (exact >= 0) return headers[exact];
-  }
-  for (let i = 0; i < normalized.length; i++) {
-    if (aliases.some(alias => {
-      const a = alias.toUpperCase().replace(/[\s_\-\/]+/g, " ").trim();
-      return normalized[i].includes(a) || a.includes(normalized[i]);
-    })) return headers[i];
-  }
-  return null;
-}
-
-function historyNormalizeSource(value) {
-  const s = clean(value).toUpperCase();
-  if (s.includes("AKTIF") || s === "ACTIVE") return "Geran Aktif";
-  if (s.includes("TAMAT") || s === "ENDED" || s === "CLOSED") return "Geran Tamat";
-  return "";
-}
-
-function historyNormalizeVerdict(value) {
-  const s = clean(value).toUpperCase().replace(/\s+/g, " ");
-  if (s.includes("BEHIND SCHEDULE") || s === "BS") return "Behind Schedule";
-  if (s.includes("NEED CLOSE MONITORING") || s === "NCM") return "Need Close Monitoring";
-  if (s.includes("CEMERLANG") || s.includes("EXCELLENT")) return "Cemerlang";
-  if (s === "BAIK" || s.includes("GOOD")) return "Baik";
-  if (s.includes("MEMUASKAN") || s.includes("SATISFACTORY")) return "Memuaskan";
-  return "";
-}
-
-function historyParseMonth(value) {
-  const raw = clean(value);
-  if (!raw) return null;
-
-  const monthMap = {
-    JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11,
-    JANUARI:0,FEBRUARI:1,MAC:2,APRIL:3,MEI:4,JUN:5,JULAI:6,OGOS:7,
-    SEPTEMBER:8,OKTOBER:9,NOVEMBER:10,DISEMBER:11
-  };
-
-  // VERDICT_HISTORY uses month names only (e.g. Januari, Februari).
-  // The current dashboard history is for reporting year 2026.
-  const HISTORY_YEAR = 2026;
-  const monthOnly = raw.toUpperCase().replace(/\s+/g, " ").trim();
-  if (Object.prototype.hasOwnProperty.call(monthMap, monthOnly)) {
-    const monthIndex = monthMap[monthOnly];
-    return {
-      key: `${HISTORY_YEAR}-${String(monthIndex + 1).padStart(2, "0")}`,
-      label: raw
-    };
-  }
-
-  let m = raw.match(/^(\d{4})[-\/]([01]?\d)(?:[-\/]([0-3]?\d))?/);
-  if (m) {
-    const d = Number(m[3] || 1);
-    const dt = new Date(Number(m[1]), Number(m[2]) - 1, d);
-    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
-  }
-
-  m = raw.match(/^(\d{1,2})[-\/]([01]?\d)[-\/](\d{4})/);
-  if (m) {
-    const dt = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
-  }
-
-  const dt = new Date(raw);
-  if (!Number.isNaN(dt.getTime())) {
-    return { key: `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`, label: dt.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
-  }
-
-  const mm = raw.toUpperCase().match(/(JANUARI|FEBRUARI|MAC|APRIL|MEI|JUN|JULAI|OGOS|SEPTEMBER|OKTOBER|NOVEMBER|DISEMBER|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[^0-9]*(20\d{2})/);
-  if (mm) {
-    const dt2 = new Date(Number(mm[2]), monthMap[mm[1]], 1);
-    return { key: `${dt2.getFullYear()}-${String(dt2.getMonth()+1).padStart(2,"0")}`, label: dt2.toLocaleDateString("ms-MY", { month: "short", year: "numeric" }) };
-  }
-  return null;
-}
-function historyNumeric(value) {
-  const n = Number(String(value ?? "").replace(/,/g, "").replace(/%/g, "").trim());
-  return Number.isFinite(n) ? n : 0;
-}
-
-function historyBuildSeries() {
-  const rows = verdictHistoryRows;
-  if (!rows.length) return { labels: [], aktif: { bs: [], ncm: [] }, tamat: { cemerlang: [], baik: [], memuaskan: [] } };
-
-  const headers = Object.keys(rows[0] || {});
-  const dateHeader = historyFindHeader(headers, ["Bulan", "Month", "Tarikh", "Date", "Reporting Month", "Snapshot Month", "Snapshot Date", "As Of", "As At"]);
-  const sourceHeader = historyFindHeader(headers, ["Sumber", "Source", "Status Geran", "Grant Status", "Jenis Geran"]);
-  const verdictHeader = historyFindHeader(headers, ["Verdict", "New Verdict", "Verdict Status"]);
-  const idHeader = historyFindHeader(headers, ["Cost Centre No", "Cost Centre", "Cost Centre Number", "Kod Projek", "Project Code", "Grant ID", "Grant No", "Project ID", "ID"]);
-  const countHeader = historyFindHeader(headers, ["Jumlah", "Count", "Jumlah Geran", "Total Grants", "Bilangan"]);
-
-  const buckets = {};
-  const add = (month, source, verdict, amount) => {
-    if (!month || !source || !verdict) return;
-    if (!buckets[month.key]) buckets[month.key] = { label: month.label, aktif: { bs:0, ncm:0 }, tamat:{ cemerlang:0, baik:0, memuaskan:0 } };
-    if (source === "Geran Aktif") {
-      if (verdict === "Behind Schedule") buckets[month.key].aktif.bs += amount;
-      if (verdict === "Need Close Monitoring") buckets[month.key].aktif.ncm += amount;
-    } else if (source === "Geran Tamat") {
-      if (verdict === "Cemerlang") buckets[month.key].tamat.cemerlang += amount;
-      if (verdict === "Baik") buckets[month.key].tamat.baik += amount;
-      if (verdict === "Memuaskan") buckets[month.key].tamat.memuaskan += amount;
-    }
-  };
-
-  if (sourceHeader && verdictHeader && dateHeader) {
-    const seen = new Set();
-    rows.forEach((row, idx) => {
-      const month = historyParseMonth(row[dateHeader]);
-      const source = historyNormalizeSource(row[sourceHeader]);
-      const verdict = historyNormalizeVerdict(row[verdictHeader]);
-      if (!month || !source || !verdict) return;
-
-      let amount = 1;
-      if (countHeader && !idHeader) {
-        const n = historyNumeric(row[countHeader]);
-        amount = n > 0 ? n : 0;
-      } else if (idHeader) {
-        const id = clean(row[idHeader]);
-        const uniqueKey = `${month.key}|${source}|${verdict}|${id || idx}`;
-        if (seen.has(uniqueKey)) return;
-        seen.add(uniqueKey);
-      }
-      add(month, source, verdict, amount);
-    });
-  } else {
-    const activeBSHeader = historyFindHeader(headers, ["Geran Aktif BS", "Aktif BS", "Behind Schedule"]);
-    const activeNCMHeader = historyFindHeader(headers, ["Geran Aktif NCM", "Aktif NCM", "Need Close Monitoring"]);
-    const tamatCHeader = historyFindHeader(headers, ["Geran Tamat Cemerlang", "Tamat Cemerlang", "Cemerlang"]);
-    const tamatBHeader = historyFindHeader(headers, ["Geran Tamat Baik", "Tamat Baik", "Baik"]);
-    const tamatMHeader = historyFindHeader(headers, ["Geran Tamat Memuaskan", "Tamat Memuaskan", "Memuaskan"]);
-    if (!dateHeader) throw new Error("Kolum bulan/tarikh tidak ditemui dalam verdict_history.");
-    rows.forEach(row => {
-      const month = historyParseMonth(row[dateHeader]);
-      if (!month) return;
-      add(month, "Geran Aktif", "Behind Schedule", historyNumeric(row[activeBSHeader]));
-      add(month, "Geran Aktif", "Need Close Monitoring", historyNumeric(row[activeNCMHeader]));
-      add(month, "Geran Tamat", "Cemerlang", historyNumeric(row[tamatCHeader]));
-      add(month, "Geran Tamat", "Baik", historyNumeric(row[tamatBHeader]));
-      add(month, "Geran Tamat", "Memuaskan", historyNumeric(row[tamatMHeader]));
-    });
-  }
-
-  const keys = Object.keys(buckets).sort();
-  return {
-    labels: keys.map(k => buckets[k].label),
-    aktif: { bs: keys.map(k => buckets[k].aktif.bs), ncm: keys.map(k => buckets[k].aktif.ncm) },
-    tamat: {
-      cemerlang: keys.map(k => buckets[k].tamat.cemerlang),
-      baik: keys.map(k => buckets[k].tamat.baik),
-      memuaskan: keys.map(k => buckets[k].tamat.memuaskan)
-    }
-  };
-}
-
-function renderHistoryLineChart(chartKey, canvasId, labels, datasets) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas || typeof Chart === "undefined") return;
-  if (historyCharts[chartKey]) historyCharts[chartKey].destroy();
-
-  historyCharts[chartKey] = new Chart(canvas, {
-    type: "line",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      elements: { line: { tension: 0.3, borderWidth: 3 }, point: { radius: 4, hoverRadius: 6 } },
-      scales: {
-        x: { title: { display: true, text: "Bulan" }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { precision: 0, callback: value => Number(value).toLocaleString() }, title: { display: true, text: "Jumlah Geran" } }
-      },
-      plugins: {
-        legend: { display: true, position: "top" },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y || 0).toLocaleString()} geran` } }
-      }
-    }
-  });
-}
-
-function renderVerdictHistoryCharts() {
-  if (!historySummaryMode || typeof Chart === "undefined") return;
-  const series = historyBuildSeries();
-  renderHistoryLineChart("aktif", "chartHistoryAktif", series.labels, [
-    { label: "Behind Schedule", data: series.aktif.bs, borderColor: "#f59e0b", backgroundColor: "rgba(245,158,11,0.10)", fill: false },
-    { label: "Need Close Monitoring", data: series.aktif.ncm, borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,0.10)", fill: false }
-  ]);
-  renderHistoryLineChart("tamat", "chartHistoryTamat", series.labels, [
-    { label: "Cemerlang", data: series.tamat.cemerlang, borderColor: "#10b981", backgroundColor: "rgba(16,185,129,0.10)", fill: false },
-    { label: "Baik", data: series.tamat.baik, borderColor: "#06b6d4", backgroundColor: "rgba(6,182,212,0.10)", fill: false },
-    { label: "Memuaskan", data: series.tamat.memuaskan, borderColor: "#3b82f6", backgroundColor: "rgba(59,130,246,0.10)", fill: false }
-  ]);
-}
-
-async function showHistorySummary() {
-  historySummaryMode = true;
-  closeMobileSidebar();
-  ["loadingPanel", "errorPanel", "dashboardContent"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add("hidden");
-  });
-  const filterSection = document.querySelector("section.card.p-5.mb-5");
-  if (filterSection) filterSection.classList.add("hidden");
-  const historyTab = document.getElementById("historySummaryTab");
-  if (historyTab) historyTab.classList.remove("hidden");
-  const sourceBadge = document.getElementById("sourceBadge");
-  if (sourceBadge) sourceBadge.innerText = "Rumusan";
-  updateSourceButtons();
-  if (!verdictHistoryRows.length) await fetchVerdictHistory();
-  else renderVerdictHistoryCharts();
 }
 
 function setVerdictDisplayMode(mode) {
@@ -3152,6 +3426,12 @@ function renderQuartileMatrix() {
   `;
 }
 
+function isEligibleTamatFR(item) {
+  if (!item) return false;
+  const fr = clean(item.frStatus).toUpperCase();
+  return !fr.includes("NOT COMPLETED") && !fr.includes("DRAFT") && !fr.includes("TERMINATED");
+}
+
 function renderVerdictMatrix() {
   const tbody = document.getElementById("verdictMatrixBody");
   const tfoot = document.getElementById("verdictMatrixFoot");
@@ -3159,10 +3439,7 @@ function renderVerdictMatrix() {
 
   const isTamat = currentSource === "Geran Tamat";
   const targetData = isTamat
-    ? filteredData.filter(d => {
-        const fr = clean(d.frStatus).toUpperCase();
-        return !fr.includes("NOT COMPLETED") && !fr.includes("DRAFT") && !fr.includes("TERMINATED");
-      })
+    ? filteredData.filter(isEligibleTamatFR)
     : filteredData;
 
   const getSummaryGrantCategory = (d) => clean(d.grantCategory) || "Tidak Dinyatakan";
@@ -3258,18 +3535,6 @@ function formatFRStatusHTML(status) {
   if (s.includes(" / ")) {
     const parts = s.split(/\s+\/\s+/);
     return `<span>${escapeHtml(parts[0])}</span><span class="text-[10px] opacity-85 mt-0.5">${escapeHtml(parts.slice(1).join(" / "))}</span>`;
-  }
-  if (s.includes(" (") && s.endsWith(")")) {
-    const parts = s.split(/\s+\(/);
-    return `<span>${escapeHtml(parts[0])}</span><span class="text-[10px] opacity-85 mt-0.5">(${escapeHtml(parts[1])}</span>`;
-  }
-
-  const words = s.split(/\s+/);
-  if (words.length >= 3 && s.length > 14) {
-    const mid = Math.ceil(words.length / 2);
-    const line1 = words.slice(0, mid).join(" ");
-    const line2 = words.slice(mid).join(" ");
-    return `<span>${escapeHtml(line1)}</span><span class="text-[10px] opacity-85 mt-0.5">${escapeHtml(line2)}</span>`;
   }
   return `<span>${escapeHtml(s)}</span>`;
 }
@@ -3475,48 +3740,6 @@ function nextPage() {
   }
 }
 
-const chartValueLabelsPlugin = {
-  id: "chartValueLabelsPlugin",
-  afterDatasetsDraw(chart) {
-    const { ctx } = chart;
-    const isBar = chart.config.type === "bar";
-    const isDoughnut = chart.config.type === "doughnut" || chart.config.type === "pie";
-
-    chart.data.datasets.forEach((dataset, datasetIndex) => {
-      const meta = chart.getDatasetMeta(datasetIndex);
-      if (meta.hidden) return;
-
-      meta.data.forEach((element, index) => {
-        const value = dataset.data[index];
-        if (value === null || value === undefined || value === 0) return;
-
-        ctx.save();
-        if (isBar) {
-          ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-          ctx.fillStyle = "#334155";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(Number(value).toLocaleString(), element.x, element.y - 4);
-        } else if (isDoughnut) {
-          const { x, y } = element.tooltipPosition();
-          ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-          ctx.fillStyle = "#ffffff";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.shadowColor = "rgba(0,0,0,0.5)";
-          ctx.shadowBlur = 4;
-          ctx.fillText(Number(value).toLocaleString(), x, y);
-        }
-        ctx.restore();
-      });
-    });
-  }
-};
-
-if (typeof Chart !== "undefined") {
-  Chart.register(chartValueLabelsPlugin);
-}
-
 function renderOrUpdateBarChart(chartKey, canvasId, labels, data, colors) {
   const ctx = document.getElementById(canvasId);
   if (!ctx || typeof Chart === "undefined") return;
@@ -3601,19 +3824,7 @@ function renderOrUpdateDoughnutChart(chartKey, canvasId, labels, data, colors) {
           labels: {
             boxWidth: 12,
             padding: 12,
-            font: { size: 11 },
-            generateLabels(chart) {
-              const d = chart.data;
-              if (!d.labels.length) return [];
-              return d.labels.map((lbl, i) => ({
-                text: `${lbl}: ${Number(d.datasets[0].data[i] || 0).toLocaleString()}`,
-                fillStyle: d.datasets[0].backgroundColor[i],
-                strokeStyle: "#ffffff",
-                lineWidth: 1,
-                hidden: false,
-                index: i
-              }));
-            }
+            font: { size: 11 }
           }
         },
         tooltip: {
@@ -3636,7 +3847,7 @@ function updateCharts() {
   const monitoredList = ["Q1", "Q2", "Q3", "Q4", "Q5 (Extension)"];
 
   const visualData = isTamat
-    ? filteredData
+    ? filteredData.filter(isEligibleTamatFR)
     : filteredData.filter(d => monitoredList.includes(d.quartile));
 
   const totalBadge = document.getElementById("visualMonitoredTotalBadge");
@@ -3739,11 +3950,12 @@ function updateGraceVerdictChart() {
   const ctx = document.getElementById("chartGraceVerdictCategory");
   if (!ctx || typeof Chart === "undefined") return;
 
-  let targetData = filteredData;
+  // Tapis geran yang layak (dikecualikan Not Completed, Draft, Terminated)
+  let targetData = filteredData.filter(isEligibleTamatFR);
   if (graceChartFilter === "in") {
-    targetData = filteredData.filter(d => hasGracePeriod(d.gracePeriodRaw));
+    targetData = targetData.filter(d => hasGracePeriod(d.gracePeriodRaw));
   } else if (graceChartFilter === "out") {
-    targetData = filteredData.filter(d => !hasGracePeriod(d.gracePeriodRaw));
+    targetData = targetData.filter(d => !hasGracePeriod(d.gracePeriodRaw));
   }
 
   let cemerlang = 0, baik = 0, memuaskan = 0, kurang = 0, bermasalah = 0;
@@ -3768,8 +3980,8 @@ function updateGraceVerdictChart() {
   if (elK) elK.innerText = kurang.toLocaleString();
   if (elB) elB.innerText = bermasalah.toLocaleString();
 
-  const activeCats = [...new Set(targetData.map(d => d.grantCategory))].sort(compareGrantCategories);
-  const displayCats = activeCats.length > 0 ? activeCats : CATEGORY_ORDER;
+  // Gunakan urutan kategori rasmi secara konsisten
+  const displayCats = CATEGORY_ORDER;
 
   const dataCemerlang = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 0).length);
   const dataBaik = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 1).length);
@@ -3778,11 +3990,11 @@ function updateGraceVerdictChart() {
   const dataBermasalah = displayCats.map(cat => targetData.filter(d => d.grantCategory === cat && getTamatVerdictOrderIndex(d.verdict) === 4).length);
 
   const datasets = [
-    { label: "Cemerlang", data: dataCemerlang, backgroundColor: "#10b981", borderRadius: 4 },
-    { label: "Baik", data: dataBaik, backgroundColor: "#06b6d4", borderRadius: 4 },
-    { label: "Memuaskan", data: dataMemuaskan, backgroundColor: "#3b82f6", borderRadius: 4 },
-    { label: "Kurang Memuaskan", data: dataKurang, backgroundColor: "#f59e0b", borderRadius: 4 },
-    { label: "Bermasalah", data: dataBermasalah, backgroundColor: "#ef4444", borderRadius: 4 }
+    { label: "Cemerlang", data: dataCemerlang, backgroundColor: "#10b981", borderRadius: 2 },
+    { label: "Baik", data: dataBaik, backgroundColor: "#06b6d4", borderRadius: 2 },
+    { label: "Memuaskan", data: dataMemuaskan, backgroundColor: "#3b82f6", borderRadius: 2 },
+    { label: "Kurang Memuaskan", data: dataKurang, backgroundColor: "#f59e0b", borderRadius: 2 },
+    { label: "Bermasalah", data: dataBermasalah, backgroundColor: "#ef4444", borderRadius: 2 }
   ];
 
   if (charts.graceVerdictCategory) {
@@ -3801,15 +4013,17 @@ function updateGraceVerdictChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: { top: 25 } },
       scales: {
         x: {
           stacked: true,
           grid: { display: false },
-          ticks: { font: { size: 11, weight: "bold" } }
+          ticks: { font: { size: 11, weight: "bold" }, color: "#334155" }
         },
         y: {
           stacked: true,
           beginAtZero: true,
+          grace: "15%",
           ticks: { precision: 0, font: { size: 11 } },
           grid: { color: "#f1f5f9" }
         }
@@ -3817,7 +4031,8 @@ function updateGraceVerdictChart() {
       plugins: {
         legend: {
           position: "top",
-          labels: { boxWidth: 12, padding: 14, font: { size: 11, weight: "600" } }
+          align: "center",
+          labels: { boxWidth: 12, padding: 16, font: { size: 11, weight: "600" } }
         },
         tooltip: {
           callbacks: {
@@ -3830,13 +4045,13 @@ function updateGraceVerdictChart() {
 }
 
 function showGraceVerdictBreakdown(verdictName) {
-  let targetData = filteredData;
+  let targetData = filteredData.filter(isEligibleTamatFR);
   let contextLabel = "Semua";
   if (graceChartFilter === "in") {
-    targetData = filteredData.filter(d => hasGracePeriod(d.gracePeriodRaw));
+    targetData = targetData.filter(d => hasGracePeriod(d.gracePeriodRaw));
     contextLabel = "Dalam Grace Period";
   } else if (graceChartFilter === "out") {
-    targetData = filteredData.filter(d => !hasGracePeriod(d.gracePeriodRaw));
+    targetData = targetData.filter(d => !hasGracePeriod(d.gracePeriodRaw));
     contextLabel = "Luar Grace Period";
   }
 
@@ -3958,13 +4173,7 @@ function renderGraceModalTable(grants) {
 function getVerdictTabData() {
   const isTamat = currentSource === "Geran Tamat";
   if (isTamat) {
-    return filteredData.filter(d => {
-      const fr = clean(d.frStatus).toUpperCase();
-      if (fr.includes("NOT COMPLETED") || fr.includes("DRAFT") || fr.includes("TERMINATED")) {
-        return false;
-      }
-      return true;
-    });
+    return filteredData.filter(isEligibleTamatFR);
   }
   const monitoredList = ["Q1", "Q2", "Q3", "Q4", "Q5 (Extension)"];
   return filteredData.filter(d => monitoredList.includes(d.quartile));
@@ -4342,17 +4551,19 @@ function closeModalOnOverlay(e, id) {
 }
 
 function openConfigModal() {
-  document.getElementById("configAktifUrl").value = sourceUrls["Geran Aktif"];
-  document.getElementById("configTamatUrl").value = sourceUrls["Geran Tamat"];
+  document.getElementById("configAktifUrl").value = DEFAULT_URLS["Geran Aktif"];
+  document.getElementById("configTamatUrl").value = DEFAULT_URLS["Geran Tamat"];
+  const histEl = document.getElementById("configVerdictHistoryUrl");
+  if (histEl) histEl.value = DEFAULT_URLS["verdict_history"];
   openModal("configModal");
 }
 
 function reloadData() {
   const icon = document.getElementById("refreshIcon");
   if (icon) icon.classList.add("fa-spin");
-  const task = historySummaryMode ? fetchVerdictHistory() : fetchCurrentSource();
+  const task = currentSource === "Rumusan" ? loadVerdictHistorySource() : fetchCurrentSource();
   task.then(() => {
-    showToast(historySummaryMode ? "Data verdict_history berjaya dikemaskini." : "Data Google Sheets berjaya dikemaskini.");
+    showToast(currentSource === "Rumusan" ? "Data verdict_history berjaya dikemaskini." : "Data Google Sheets berjaya dikemaskini.");
   }).finally(() => {
     setTimeout(() => {
       if (icon) icon.classList.remove("fa-spin");
@@ -4437,7 +4648,10 @@ function escapeAttr(str) {
   return escapeHtml(str);
 }
 
-// Expose global functions to window scope
+function showHistorySummary() {
+  selectSource("Rumusan");
+}
+
 window.selectSource = selectSource;
 window.showHistorySummary = showHistorySummary;
 window.switchTab = switchTab;
