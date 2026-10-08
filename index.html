@@ -1409,6 +1409,25 @@
   </div>
 </div>
 
+
+<!-- Modal Pecahan Verdict Geran Aktif Mengikut Quartile -->
+<div id="aktifVerdictQuartileModal" class="modal-overlay" onclick="closeModalOnOverlay(event,'aktifVerdictQuartileModal')">
+  <div class="modal max-w-2xl">
+    <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <h2 id="aktifVerdictQuartileTitle" class="text-lg font-extrabold text-slate-900">Pecahan Verdict Mengikut Quartile</h2>
+          <span id="aktifVerdictQuartileBadge" class="badge badge-blue">0 Geran</span>
+        </div>
+        <p id="aktifVerdictQuartileSubtitle" class="text-xs text-slate-500 mt-1">Jumlah geran bagi setiap monitored quartile berdasarkan filter semasa.</p>
+      </div>
+      <button class="btn btn-light text-sm" onclick="closeModal('aktifVerdictQuartileModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-5"><div id="aktifVerdictQuartileGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div></div>
+    <div class="p-4 border-t border-slate-200 flex justify-end"><button class="btn btn-light text-sm" onclick="closeModal('aktifVerdictQuartileModal')">Tutup</button></div>
+  </div>
+</div>
+
 <!-- Modal Butiran Lengkap Geran -->
 <div id="detailModal" class="modal-overlay" onclick="closeModalOnOverlay(event,'detailModal')">
   <div class="modal max-w-3xl">
@@ -3832,6 +3851,15 @@ function renderOrUpdateDoughnutChart(chartKey, canvasId, labels, data, colors) {
             label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} geran`
           }
         }
+      },
+      onClick: (event, elements, chart) => {
+        if (!elements || !elements.length) return;
+        const index = elements[0].index;
+        const label = chart.data.labels?.[index] || "";
+        if (chart.canvas && chart.canvas.id === "chartVerdict" && currentSource === "Geran Aktif") {
+          const verdict = String(label).split(" (")[0].trim();
+          showAktifVerdictQuartileBreakdown(verdict);
+        }
       }
     }
   });
@@ -4042,6 +4070,60 @@ function updateGraceVerdictChart() {
       }
     }
   });
+}
+
+
+function showAktifVerdictQuartileBreakdown(verdictName) {
+  if (currentSource !== "Geran Aktif") return;
+
+  const monitoredList = ["Q1", "Q2", "Q3", "Q4", "Q5 (Extension)"];
+  const targetIdx = getVerdictOrderIndex(verdictName);
+  const matchingGrants = filteredData.filter(d =>
+    monitoredList.includes(d.quartile) &&
+    getVerdictOrderIndex(d.verdict) === targetIdx
+  );
+
+  const quartileCounts = {};
+  monitoredList.forEach(q => quartileCounts[q] = matchingGrants.filter(d => d.quartile === q).length);
+
+  const english = {
+    PW: "Progressing Well",
+    OS: "On Schedule",
+    BS: "Behind Schedule",
+    NCM: "Need Close Monitoring"
+  };
+
+  const title = document.getElementById("aktifVerdictQuartileTitle");
+  const badge = document.getElementById("aktifVerdictQuartileBadge");
+  const subtitle = document.getElementById("aktifVerdictQuartileSubtitle");
+  const grid = document.getElementById("aktifVerdictQuartileGrid");
+
+  if (title) title.innerText = `Pecahan Verdict: ${verdictName}`;
+  if (badge) {
+    badge.innerText = `${matchingGrants.length.toLocaleString()} Geran`;
+    badge.className = `badge ${verdictBadgeClass(verdictName)}`;
+  }
+  if (subtitle) subtitle.innerText = `Jumlah geran ${verdictName} (${english[verdictName] || ""}) mengikut Monitored Quartile berdasarkan filter semasa.`;
+
+  const styles = {
+    "Q1": "border-blue-100 bg-blue-50/70 text-blue-700",
+    "Q2": "border-emerald-100 bg-emerald-50/70 text-emerald-700",
+    "Q3": "border-amber-100 bg-amber-50/70 text-amber-700",
+    "Q4": "border-red-100 bg-red-50/70 text-red-700",
+    "Q5 (Extension)": "border-purple-100 bg-purple-50/70 text-purple-700"
+  };
+
+  if (grid) {
+    grid.innerHTML = monitoredList.map(q => `
+      <div class="p-4 rounded-xl border ${styles[q]}">
+        <div class="text-[10px] font-bold uppercase tracking-wider">${escapeHtml(q)}</div>
+        <div class="text-2xl font-extrabold mt-1">${quartileCounts[q].toLocaleString()}</div>
+        <div class="text-[10px] font-medium mt-1 opacity-75">geran</div>
+      </div>
+    `).join("");
+  }
+
+  openModal("aktifVerdictQuartileModal");
 }
 
 function showGraceVerdictBreakdown(verdictName) {
